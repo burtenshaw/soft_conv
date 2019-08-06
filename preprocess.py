@@ -57,7 +57,7 @@ class whatsApp:
         return {"utc":int(datetime.strptime(_line[0], '%d/%m/%y, %H:%M').timestamp()),
                    "user":re.search("([A-Z])\w+\:", line).group(0),
                    "text":_line[1],
-                   "raw":line}
+                   "raw":_line}
 
     def fileIter(self):
         return {n: self.conversation(f) for n, f in enumerate(self.paths)}
