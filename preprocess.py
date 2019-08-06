@@ -3,7 +3,6 @@ import re
 import json
 import os
 from datetime import datetime
-import names
 
 #%%
 class whatsApp:
