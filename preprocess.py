@@ -3,7 +3,7 @@ import re
 import json
 import os
 from datetime import datetime
-import dateutil.parser
+from dateutil import parser
 
 #%%
 class whatsApp:
@@ -54,7 +54,7 @@ class whatsApp:
 
     def line(self, line):
         _line = re.split("\ \-.*\:", line)
-        return {"utc":int(dateutil.parser.parse(_line[0]).timestamp()),
+        return {"utc":int(parser.parse(_line[0]).timestamp()),
                    "user":re.search("([A-Z])\w+\:", line).group(0),
                    "text":_line[1],
                    "raw":_line}
