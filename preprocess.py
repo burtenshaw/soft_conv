@@ -27,13 +27,35 @@ class whatsApp:
         users = list(set(users_seq))
         return [users, users_seq]
 
+    def _startsWithDate(self, s):
+        pattern = '^[0-9]+(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9])'
+        result = re.match(pattern, s)
+        return result
+    
+    def line(self, line):
+        date = self._startsWithDate(line)
+        if date:
+            utc = int(parser.parse(date.group(0)).timestamp())
+            user, text = line[len(date.group(0))+2:].split(":", 1)
+            return {"utc":utc, "user":user, "text":text}
+        else:
+            return str(line)
+
     def conversation(self, f):
         _f = open(f)
-        
         if self.debug:
             [self.lineDebug(l) for l in _f]
         else:
-            lines = [self.line(l) for l in _f]
+            lines = {}
+            for n, l in enumerate(_f):
+                _l = self.line(l)
+                if type(_l) == dict:
+                    lines[n] = _l
+                    x = n
+                else:
+                    lines[x]['text'] += _l
+                    
+            lines = [l[1] for l in lines.items()]
             users, users_seq = self.users(lines)
 
             if self.remove_names:
@@ -49,6 +71,7 @@ class whatsApp:
                     "source": f,
                     "users_key": users_key}
 
+
     def anon(self, lines, users):
         users_key = {u:n for n,u in enumerate(users)}
         for l in lines:
@@ -56,13 +79,6 @@ class whatsApp:
         if not self.save_key:
             users_key={}
         return lines, users_key
-
-    def line(self, line):
-        _line = re.split("\ \-.*\:", line)
-        return {"utc":int(parser.parse(_line[0]).timestamp()),
-                "user":re.search("([A-Z])\w+\:", line).group(0),
-                "text":_line[1],
-                "raw":_line}
 
     def fileIter(self):
         return {n: self.conversation(f) for n, f in enumerate(self.paths)}
