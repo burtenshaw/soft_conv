@@ -1,11 +1,11 @@
-#%%
 import re
 import json
 import os
 from datetime import datetime
 from dateutil import parser
 import argparse
-#%%
+
+
 class whatsApp:
     """ process whatsapp conversations into a json, maintain conversation and user structure
     use 'remove_names' to remove all the names from lines
@@ -18,7 +18,8 @@ class whatsApp:
         self.remove_names = remove_names
         self.save_key = save_key
         self.debug = debug
-
+        self.pattern = '^[0-9]{0,2}(\/|\-|\.)(((0)[0-9])|((1)[0-2]))(\/|\-|\.)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9])(pm|am| pm| am|)'
+        
     def load(self):
         return [self.dir + x for x in os.listdir(self.dir) if x[-4:] == ".txt"]
 
@@ -28,16 +29,19 @@ class whatsApp:
         return [users, users_seq]
 
     def startsWithDate(self, s):
-        pattern = '^[0-9]{0,2}(\/|\-|\.)(((0)[0-9])|((1)[0-2]))(\/|\-|\.)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9])(pm|am| pm| am|)'
-        result = re.match(pattern, s)
-        return result
+        return re.match(self.pattern, s)
     
-    def line(self, line):
+    def line(self, line, n_line):
         date = self.startsWithDate(line)
         if date:
-            utc = int(parser.parse(date.group(0)).timestamp())
+            try:
+                utc = int(parser.parse(date.group(0)).timestamp())
+                clean_utc = True
+            except ValueError:
+                utc = date.group(0)
+                clean_utc = False
             user, text = line[len(date.group(0))+1:].split(":", 1)
-            return {"utc":utc, "user":user, "text":text}
+            return {"line" : n_line, "utc":utc, "user":user, "text":text, "clean_utc" : clean_utc}
         else:
             return str(line)
 
@@ -48,12 +52,14 @@ class whatsApp:
         else:
             lines = {}
             for n, l in enumerate(_f):
-                _l = self.line(l)
+                _l = self.line(l, n)
                 if type(_l) == dict:
                     lines[n] = _l
                     x = n
                 else:
                     lines[x]['text'] += _l
+                print(x)
+                print(_l)
             lines = [l[1] for l in lines.items()]
             users, users_seq = self.users(lines)
 
@@ -99,7 +105,6 @@ class whatsApp:
             user, text = line[len(date.group(0))+1:].split(":", 1)
         except:
             print("user/text split error \n PRIVATE LINE:  ", line)
-    
     
 
 
