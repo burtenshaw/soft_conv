@@ -88,19 +88,19 @@ class whatsApp:
             json.dump(data,f)
     
     def lineDebug(self, line):
-        _line = re.split("\ \-.*\:", line)
         try:
-            re.split("\ \-.*\:", line)
+            self.startsWithDate(line)
         except:
-            print("line split error: ", "\n", "PRIVATE LINE:  ", line)
+            print("starts with error \n PRIVATE LINE:  ", line)
         try:
-            int(parser.parse(_line[0]).timestamp())
+            int(parser.parse(date.group(0)).timestamp())
         except:
-            print("date error", "\n", "PRIVATE LINE:  ", line)
+            print("date error: \n RIVATE LINE:  ", line)
         try:
-            re.search("([A-Z])\w+\:", line).group(0)
+            user, text = line[len(date.group(0))+1:].split(":", 1)
         except:
-            print("regex user error", "\n", "PRIVATE LINE:  ", line)
+            print("user/text split error \n PRIVATE LINE:  ", line)
+    
 
 
 if __name__== "__main__":
