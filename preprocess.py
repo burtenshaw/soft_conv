@@ -18,7 +18,8 @@ class whatsApp:
         self.remove_names = remove_names
         self.save_key = save_key
         self.debug = debug
-        self.pattern = '^[0-9]{0,2}(\/|\-|\.)(((0)[0-9])|((1)[0-2]))(\/|\-|\.)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9])(pm|am| pm| am|)'
+        self.pattern = '^[0-9]{0,2}(\/|\-|\.)(((0)[0-9])|((1)[0-2]))(\/|\-|\.)(\d{2}|\d{4})(,|) ([0-9][0-9]):([0-9][0-9])(pm|am| pm| am|)'
+        self.extra_pattern = '(\:)[0-6]?[0-9]?(\:)\ '
         
     def load(self):
         return [self.dir + x for x in os.listdir(self.dir) if x[-4:] == ".txt"]
@@ -28,20 +29,21 @@ class whatsApp:
         users = list(set(users_seq))
         return [users, users_seq]
 
-    def startsWithDate(self, s):
-        return re.match(self.pattern, s)
+    def startsWithDate(self, s, pattern):
+        return re.match(pattern, s)
     
     def line(self, line, n_line):
-        date = self.startsWithDate(line)
+        date = self.startsWithDate(line, self.pattern)
         if date:
             try:
                 utc = int(parser.parse(date.group(0)).timestamp())
-                clean_utc = True
             except ValueError:
-                utc = date.group(0)
-                clean_utc = False
-            user, text = line[len(date.group(0))+1:].split(":", 1)
-            return {"line" : n_line, "utc":utc, "user":user, "text":text, "clean_utc" : clean_utc}
+                utc = False
+            line = line[len(date.group(0)):]
+            if self.startsWithDate(line, self.extra_pattern):
+                line = line[4:]
+            user, text = line.split(": ", 1)
+            return {"line" : n_line, "utc":utc, "user":user, "text":text, "raw_date":date.group(0)}
         else:
             return str(line)
 
@@ -58,8 +60,8 @@ class whatsApp:
                     x = n
                 else:
                     lines[x]['text'] += _l
-                print(x)
-                print(_l)
+#                 print(x)
+#                 print(_l)
             lines = [l[1] for l in lines.items()]
             users, users_seq = self.users(lines)
 
@@ -94,13 +96,13 @@ class whatsApp:
     
     def lineDebug(self, line):
         try:
-            self.startsWithDate(line)
+            self.startsWithDate(line, self.pattern)
         except:
             print("starts with error \n PRIVATE LINE:  ", line)
         try:
             int(parser.parse(date.group(0)).timestamp())
         except:
-            print("date error: \n RIVATE LINE:  ", line)
+            print("date error: \n PRIVATE LINE:  ", line)
         try:
             user, text = line[len(date.group(0))+1:].split(":", 1)
         except:
