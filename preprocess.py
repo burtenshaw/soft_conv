@@ -28,7 +28,7 @@ class whatsApp:
         return [users, users_seq]
 
     def startsWithDate(self, s):
-        pattern = '^[0-9]+(\/|\-|\.)(((0)[0-9])|((1)[0-2]))(\/|\-|\.)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9])'
+            pattern = '^[0-9]{0,2}(\/|\-|\.)(((0)[0-9])|((1)[0-2]))(\/|\-|\.)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9])(pm|am| pm| am|)'
         result = re.match(pattern, s)
         return result
     
