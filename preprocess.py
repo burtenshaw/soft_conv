@@ -36,6 +36,7 @@ class whatsApp:
         date = self.startsWithDate(line)
         if date:
             utc = int(parser.parse(date.group(0)).timestamp())
+            user, text = line[len(date.group(0))+1:].split(":", 1)
             return {"utc":utc, "user":user, "text":text}
         else:
             return str(line)
