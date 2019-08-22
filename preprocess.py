@@ -100,6 +100,7 @@ class whatsApp:
         except:
             print("user/text split error \n PRIVATE LINE:  ", line)
     
+    
 
 
 if __name__== "__main__":
