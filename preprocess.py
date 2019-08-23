@@ -6,20 +6,25 @@ from dateutil import parser
 import argparse
 
 
-class whatsApp:
+class instantMessage:
     """ process whatsapp conversations into a json, maintain conversation and user structure
     use 'remove_names' to remove all the names from lines
     use 'save_key' to store a key in each file to return real users. WARNING: Not anonymous. 
     """
-    def __init__(self, data_dir="data/", out_dir="output_file.json", remove_names=True, save_key=False, debug=False):
+    def __init__(self,
+                 patterns,
+                 data_dir="data/", 
+                 out_dir="output_file.json", 
+                 remove_names=True, 
+                 save_key=False, 
+                 debug=True):
         self.dir = data_dir
         self.paths = self.load()
         self.out_dir = out_dir
         self.remove_names = remove_names
         self.save_key = save_key
         self.debug = debug
-        self.pattern = '^[0-9]{0,2}(\/|\-|\.)(((0)[0-9])|((1)[0-2]))(\/|\-|\.)(\d{2}|\d{4})(,|) ([0-9][0-9]):([0-9][0-9])(pm|am| pm| am|)'
-        self.extra_pattern = '(\:)[0-6]?[0-9]?(\:)\ '
+        self.patterns = patterns
         
     def load(self):
         return [self.dir + x for x in os.listdir(self.dir) if x[-4:] == ".txt"]
@@ -28,55 +33,64 @@ class whatsApp:
         users_seq = [l['user'] for l in lines]
         users = list(set(users_seq))
         return [users, users_seq]
-
-    def startsWithDate(self, s, pattern):
-        return re.match(pattern, s)
+            
+    def reg_line(self, line, pattern):
+        _line = re.match(pattern, line)
+        return [_line.group('date'), _line.group('user'), _line.group('text')]
+    
+    def validate_pattern(self, line):
+        for p in self.patterns:
+            try:
+                date, user, text = self.reg_line(line, p)
+                print("Regex pattern validated: ", 
+                      "\n date ",date,
+                      "\n user ", user,
+                      "\n text ", text)
+                utc = int(parser.parse(date).timestamp())
+                print("Date parse validated: ", utc)
+                self.pattern = p
+                break
+            except:
+                print("Broken pattern")
+                pass
     
     def line(self, line, n_line):
-        date = self.startsWithDate(line, self.pattern)
-        if date:
-            try:
-                utc = int(parser.parse(date.group(0)).timestamp())
-            except ValueError:
-                utc = False
-            line = line[len(date.group(0)):]
-            if self.startsWithDate(line, self.extra_pattern):
-                line = line[4:]
-            user, text = line.split(": ", 1)
-            return {"line" : n_line, "utc":utc, "user":user, "text":text, "raw_date":date.group(0)}
-        else:
+        try:
+            date, user, text = self.reg_line(line, self.pattern)
+            utc = int(parser.parse(date).timestamp())
+            return {"line" : n_line, 
+                    "utc":utc, 
+                    "user":user, 
+                    "text":text, 
+                    "raw_date":date}
+        except:
             return str(line)
 
-    def conversation(self, f):
-        _f = open(f)
-        if self.debug:
-            [self.lineDebug(l) for l in _f]
-        else:
-            lines = {}
-            for n, l in enumerate(_f):
-                _l = self.line(l, n)
-                if type(_l) == dict:
-                    lines[n] = _l
-                    x = n
-                else:
-                    lines[x]['text'] += _l
-#                 print(x)
-#                 print(_l)
-            lines = [l[1] for l in lines.items()]
+    def conversation(self, file):
+        print("parsing file: ", file)
+        doc = list(open(file, 'r', encoding="utf-8"))
+        self.validate_pattern(doc[0])
+        lines = {}
+        for n, l in enumerate(doc):
+            _l = self.line(l, n)
+            if type(_l) == dict:
+                lines[n] = _l
+                x = n
+            elif type(_l) == str:
+                lines[x]['text'] += _l
+        lines = [l[1] for l in lines.items()]  
+        users, users_seq = self.users(lines)
+        if self.remove_names:
+            lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
 
-            if self.remove_names:
-                lines, users_key = self.anon(lines, users)
-                users, users_seq = self.users(lines)
-
-            date_range = [lines[0]['utc'], lines[-1]['utc']]
-
-            return {"lines":lines, 
-                    "user_seq":users_seq, 
-                    "users":users, 
-                    "date_range":date_range,
-                    "source": f,
-                    "users_key": users_key}
+        date_range = [lines[0]['utc'], lines[-1]['utc']]
+        return {"lines":lines, 
+                "user_seq":users_seq, 
+                "users":users, 
+                "date_range":date_range,
+                "source": file,
+                "users_key": users_key}
 
     def anon(self, lines, users):
         users_key = {u:n for n,u in enumerate(users)}
@@ -93,32 +107,19 @@ class whatsApp:
         data = self.fileIter()
         with open(self.out_dir, 'w') as f:
             json.dump(data,f)
-    
-    def lineDebug(self, line):
-        try:
-            self.startsWithDate(line, self.pattern)
-        except:
-            print("starts with error \n PRIVATE LINE:  ", line)
-        try:
-            int(parser.parse(date.group(0)).timestamp())
-        except:
-            print("date error: \n PRIVATE LINE:  ", line)
-        try:
-            user, text = line[len(date.group(0))+1:].split(":", 1)
-        except:
-            print("user/text split error \n PRIVATE LINE:  ", line)
-    
 
+class whatsApp(instantMessage):
+    pass
+
+class facebook(instantMessage):
+    pass
+
+patterns = ["(?P<date>(?:(?:[0-3][0-9])|(?:[0-9]))(?:\/|\-|\.)(?:(?:(?:0)[0-9])|(?:(?:1)[0-2]))(?:\/|\-|\.)(?:\d{2}|\d{4})(?:,|) (?:[0-2][0-9])\:(?:[0-5][0-9])(?:pm|am| pm| am|\:[0-5][0-9]|))(?:\:\ |\ \-\ )(?P<user>.+?)(?:\:)(?P<text>.*)"]
 
 if __name__== "__main__":
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--debug", help="get more info and examples from data errors.", action="store_true")
     args = argparser.parse_args()
-
-    if args.debug:
-        w = whatsApp(debug=True)
-    else:
-        w = whatsApp()
-
+    w = whatsApp(patterns, debug=False)
     w.run()
