@@ -5,6 +5,10 @@ from datetime import datetime
 from dateutil import parser
 import argparse
 
+import pandas as pd
+from collections import defaultdict
+import itertools
+import difflib
 
 class instantMessage:
     """ process whatsapp conversations into a json, maintain conversation and user structure
@@ -42,6 +46,10 @@ class instantMessage:
         if not self.save_key:
             users_key={}
         return lines, users_key
+
+    def grab_filename(self, filename, pattern):
+        result = re.match(pattern, filename)
+        return result.groupdict()
     
     def anon_filenames(self,filename):
         return filename
@@ -74,7 +82,7 @@ class instantMessage:
         if self.remove_names:
             lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
-
+        
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
         return {"lines":lines, 
                 "user_seq":users_seq, 
@@ -249,7 +257,43 @@ names = {
         "in_gesprek"
          ]
         }
+
+class proposeUsers:
+    def __init__(self, users, users_list, filename, pattern, users_df, look_up=True):
+        self.pattern, self.users_list , self.users, self.df, self.look_up = pattern, users_list, users, users_df, look_up
+        self.f_data = self.grab_filename(filename)
+        self.pos = self.possible_names()
+        self.gold_pos = self.check_key()
         
+    def grab_filename(self, filename):
+        result = re.match(self.pattern, filename).groupdict()
+        try:
+            self.users.append(result['name'])
+        except AttributeError:
+            print("no name found in filename: ", filename)
+        return result
+
+    def possible_names(self):
+        return {u : difflib.get_close_matches(u, self.users_list, n=3, cutoff=0.8) for u in self.users}
+    
+    def check_df(self, pos, df):
+        for k, i in pos.items():
+            for idx in i['keys']:
+                try:
+                    g = df.loc[idx].chatter_ID
+                    pos[k]['record'] = g
+                except KeyError:
+                    pass
+        return pos
+
+    def check_key(self):
+        gold_pos = {}
+        for k, i in self.pos.items():
+            gold_pos[k] = {'pos':i, 'keys' :list(itertools.chain.from_iterable([self.users_list[_n] for _n in i]))}
+        if self.look_up:
+            gold_pos = self.check_df(gold_pos, self.df)
+        return gold_pos
+    
 patterns = {"date": ["(?P<date>(?:(?:[0-3][0-9])|(?:[0-9]))(?:\/|\-|\.)(?:(?:(?:0)[0-9])|(?:(?:1)[0-2]))(?:\/|\-|\.)(?:\d{2}|\d{4})(?:,|) (?:[0-2][0-9])\:(?:[0-5][0-9])(?:pm|am| pm| am|\:[0-5][0-9]|))(?:\:\ |\ \-\ )(?P<user>.+?)(?:\:)(?P<text>.*)"],
             "one" : "(?# get date)(?P<date>(?:(?:[0-3][0-9])|(?:[0-9]))(?:\/|\-|\.)(?:(?:(?:0)[0-9])|(?:(?:1)[0-2]))(?:\/|\-|\.)(?:\d{2}|\d{4})(?:,|) (?:[0-2][0-9])\:(?:[0-5][0-9])(?:pm|am| pm| am|\:[0-5][0-9]|))(?:\:\ |\ \-\ )(?# get user)(?P<user>.+?)(?:\:)(?# get text)(?P<text>(.|\r|\n?|\n)+?(?=(?:(?# next date or end of the doc)(?:(?:[0-3][0-9])|(?:[0-9]))(?:\/|\-|\.)(?:(?:(?:0)[0-9])|(?:(?:1)[0-2]))(?:\/|\-|\.)(?:\d{2}|\d{4})(?:,|) (?:[0-2][0-9])\:(?:[0-5][0-9])(?:pm|am| pm| am|\:[0-5][0-9]|))|(?# end of doc)\Z))",
             'conv':"(?# get conversation date marker)(?P<conv>(?P<fb_date>(?P<_day>\d\d)(?:\s)(?P<_month>(?:[a-z|A_Z]{4,10}))\s(?P<_year>(?:[0-9]{4}))))(?:\n.*\n)(?P<exchange>(?:.*|\r|\n?|\n)+?(?=(?:(?:\d\d)\s(?:(?:[a-z|A_Z]{4,10}))\s(?:(?:[0-9]{4}))|\Z)))",
