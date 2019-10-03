@@ -45,6 +45,7 @@ class proposeUsers:
         
     def grab_filename(self, filename):
         try:
+            filename = filename.split('/')[1]
             result = re.match(self.pattern, filename).groupdict()
             self.source_user = result['name']
             return result
