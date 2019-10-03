@@ -9,7 +9,7 @@ Define the source of messages with `--data` and the type of platform with `--pla
 Data should be structured: 
 
 ```
---- data/
+--- #DATA_DIR#/
     --- school_name/
         --- instant_messagin_text_file.txt
         --- instant_messagin_text_file.txt
