@@ -38,8 +38,6 @@ kta_da_vinci_edegem = "/Users/lisahilte/Documents/doctoraat/corpora/verzameling_
 # NEW KTA DEN BIEZERD
 kta_denbiezerd_niel = "/Users/lisahilte/Documents/doctoraat/corpora/verzameling_scholen/FINAL_VERSIONS/kta_denbiezerd_niel" 
 
-
-
 # NEW OLVE EDEGEM
 olve_edegem = "/Users/lisahilte/Documents/doctoraat/corpora/verzameling_scholen/FINAL_VERSIONS/olve_edegem" 
 
