@@ -35,18 +35,21 @@ class alphaData:
 
 class proposeUsers:
     def __init__(self, users, users_list, filename, pattern, users_df, look_up=True):
+        '''
+            Given a conversation instance from instant messaging, attempt to match users with alpha data.
+        '''
         self.pattern, self.users_list , self.users, self.df, self.look_up = pattern, users_list, users, users_df, look_up
         self.f_data = self.grab_filename(filename)
-        self.pos = self.possible_names()
-        self.gold_pos = self.check_key()
+        self.proposed_names = self.possible_names()
+        self.validated_names = self.check_key()
         
     def grab_filename(self, filename):
         try:
             result = re.match(self.pattern, filename).groupdict()
-            self.users.append(result['name'])
+            self.source_user = result['name']
             return result
         except AttributeError:
-            print("no name found in filename: ", filename)
+            print("Unexpected structure in filename: ", filename)
         
     def possible_names(self):
         return {u : difflib.get_close_matches(u, self.users_list, n=3, cutoff=0.8) for u in self.users}
@@ -62,9 +65,9 @@ class proposeUsers:
         return pos
 
     def check_key(self):
-        gold_pos = {}
-        for k, i in self.pos.items():
-            gold_pos[k] = {'pos':i, 'keys' :list(itertools.chain.from_iterable([self.users_list[_n] for _n in i]))}
+        validated = {}
+        for k, i in self.proposed_names.items():
+            validated[k] = {'name':i, 'keys' :list(itertools.chain.from_iterable([self.users_list[_n] for _n in i]))}
         if self.look_up:
-            gold_pos = self.check_df(gold_pos, self.df)
-        return gold_pos
+            validated = self.check_df(validated, self.df)
+        return validated

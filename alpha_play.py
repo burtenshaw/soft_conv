@@ -102,9 +102,13 @@ for k, conv in convs.items():
         for user, i in pos.items():
             if len(i['keys']) == 1 and i['keys'][0] == i['record']:
                 try:
+                    print(i)
                     matching[k]['users_in_conv'][user].append(i['record'])
                 except KeyError:
                     print(user)
     else:
         print('no match to alpha:', conv['source'])
+#%%
+m_df = pd.DataFrame.from_dict(matching['5'])
+
 #%%

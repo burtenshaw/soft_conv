@@ -10,13 +10,16 @@ if __name__== "__main__":
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--debug", help="get more info and examples from data errors.", action="store_true")
-    argparser.add_argument("--line", help="process the doc line by line", action="store_true")
     argparser.add_argument("--data", help="directory of instant messaging conversations")
+    argparser.add_argument("--platform", help="type of instant messages: 'fb' / 'wa'")
     args = argparser.parse_args()
     
-    if args.line:
-        w = lineByline(pattern=patterns)
-    else:
-        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False )
+
+    if args.platform == 'wa':
+        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False)
+        w.run()
+
+    elif args.platform == 'fb':
+        w = facebook(patterns,data_dir=args.data,remove_names=False)
+        w.run()
     
-    w.run()
