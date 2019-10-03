@@ -16,10 +16,10 @@ if __name__== "__main__":
     
 
     if args.platform == 'wa':
-        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False)
+        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False,out_dir="whatsapp.json",)
         w.run()
 
     elif args.platform == 'fb':
-        w = facebook(patterns,data_dir=args.data,remove_names=False)
+        w = facebook(patterns,data_dir=args.data,remove_names=False, out_dir="facebook.json")
         w.run()
     
