@@ -33,13 +33,15 @@ class instantMessage:
     
     # utility functions
     def load(self):
-        self_dir = "/home/burtenshaw/data/teen/raw_demo/scool_example"
-        dir_of_schools = os.listdir(self_dir)
-        all_files = []
-        for school in dir_of_schools:
-            school_path = self_dir+'/'+school+'/'
-            all_files.extend([school_path + x for x in os.listdir(school_path) if x[-4:] == ".txt"])
-        return all_files
+        return [self.dir + x for x in os.listdir(self.dir) if x[-4:] == ".txt"]
+    # def load(self):
+    #     self_dir = "/home/burtenshaw/data/teen/raw_demo/scool_example"
+    #     dir_of_schools = os.listdir(self_dir)
+    #     all_files = []
+    #     for school in dir_of_schools:
+    #         school_path = self_dir+'/'+school+'/'
+    #         all_files.extend([school_path + x for x in os.listdir(school_path) if x[-4:] == ".txt"])
+    #     return all_files
 
     def users(self, lines):
         # TODO rewrite to encorporte alpha user key
