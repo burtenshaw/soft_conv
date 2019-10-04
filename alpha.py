@@ -2,6 +2,7 @@ import re
 import difflib
 import itertools
 import pandas as pd
+import json
 
 class alphaData:
     def __init__(self, src_path, names):
@@ -32,6 +33,25 @@ class alphaData:
     def save(self, output_dir):
         self.line_df.to_csv(output_dir+"alpha_lines.csv")
         self.user_df.to_csv(output_dir+"alpha_users.csv")
+
+class betaData:
+    def __init__(self, conversation_json):
+        with open(conversation_json, 'r') as f:
+            self.conv_data = json.load(f)
+        self.line_df = self.make_lines_df()
+        self.conv_df = self.make_conv_df()
+    
+    def make_lines_df(self):
+        df = pd.DataFrame.from_dict(self.conv_data, orient='index')['lines']
+        df = pd.DataFrame(data=df)
+        df = df.lines.apply(pd.Series)
+        return df
+        
+    def make_conv_df(self):
+        df = pd.DataFrame.from_dict(self.conv_data, orient='index')
+        df.drop(columns=['lines', 'user_seq', 'users_key'], inplace=True)
+        return df
+
 
 class proposeUsers:
     def __init__(self, users, users_list, filename, pattern, users_df, look_up=True):
@@ -72,3 +92,64 @@ class proposeUsers:
         if self.look_up:
             validated = self.check_df(validated, self.df)
         return validated
+    
+
+class matchDataSets:
+    def __init__(self, alpha_df, beta_df, alpha_key, conv_df):
+        self.alpha_df, self.beta_df, self.conv_df = alpha_df, beta_df, conv_df
+        self.alpha_key_reversed, self.alpha_key = self._reverse_key(), alpha_key
+        self.manual_df = pd.DataFrame()
+
+    # utility functions
+
+    def _reverse_key(self):
+        alpha_key_reversed = {}
+        for name, l in self.alpha_key.items():
+            for k in l:
+                alpha_key_reversed[k] = name 
+        return alpha_key_reversed
+
+    def match_meta_data(self, conv_idx, proposed_chatter_id):
+        school = self.conv_df.at[conv_idx, 'school']
+        # get more meta info from beta, and use it to match
+        pass
+
+    # matching instances
+
+    def match_none(self, beta_contact_name):
+        pass
+        
+    def match_one(self, conv_idx, beta_contact_name, chatter_id):
+        conv_lines = [line['text'] for line in self.beta_df[int(conv_idx)] if type(line) == dict and line['user'] == beta_contact_name]
+        if len(conv_lines) > 3:
+            conv_lines.sort(key=len, reverse=True)
+            beta_examples = conv_lines[:3]
+        else:
+            beta_examples = conv_lines
+        # get line form alpha
+        try:
+            alpha_examples = list(self.alpha_df.loc[chatter_id]['post'])
+        except KeyError:
+            return 0
+        if(all(x in alpha_examples for x in beta_examples)):
+            return str(chatter_id)
+        else:
+            return 0
+    
+    def match_many(self, conv_idx, beta_contact_name, proposed_chatter_ids, beta_contact_int):
+        self.manual_df.at[conv_idx, 'conv_id'] = conv_idx
+        self.manual_df.at[conv_idx, 'source'] = self.beta_df[int(conv_idx)]['source']
+        self.manual_df.at[conv_idx, 'contact name'] = beta_contact_name
+        
+        matches = []
+
+        for n, chatter_id in enumerate(proposed_chatter_ids):
+            self.manual_df.at[conv_idx, 'user_%s_proposed_chatter_id_%s' % (beta_contact_int, n)] = str(chatter_id)
+            self.manual_df.at[conv_idx, 'user_%s_proposed_alpha_name_%s' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
+#                 manual_df.at[idx, 'proposed_examples_%s' % _n] = str(alpha_line_df.loc[k]['post'])
+            match = self.match_one(conv_idx,beta_contact_name,chatter_id)
+            matches.append(match)
+        
+        for n, chatter_id in enumerate(matches):
+            self.manual_df.at[conv_idx, 'user_%s_match_%s_chatter_id' % (beta_contact_int, n)] = chatter_id
+            self.manual_df.at[conv_idx, 'user_%s_match_%s_alpha_name' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
