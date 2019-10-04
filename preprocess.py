@@ -41,7 +41,8 @@ class instantMessage:
             all_files = []
             for school in dir_of_schools:
                 school_path = self.dir+'/'+school+'/'
-                all_files.extend([school_path + x for x in os.listdir(school_path) if x[-4:] == ".txt"])
+                if os.path.isdir(school_path):
+                    all_files.extend([school_path + x for x in os.listdir(school_path) if x[-4:] == ".txt"])
         else:
             all_files =  [self.dir + x for x in os.listdir(self.dir) if x[-4:] == ".txt"]
         return all_files
