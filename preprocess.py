@@ -24,6 +24,7 @@ class instantMessage:
                  school=True):
         print('Data Directory: ', data_dir)
         self.dir = data_dir
+        self.school = school
         self.paths = self.load()
         print('N .txt files: ', len(self.paths))
         self.out_dir = out_dir
@@ -31,7 +32,7 @@ class instantMessage:
         self.remove_names = remove_names
         self.save_key = save_key
         self.pattern = pattern
-        self.school = school
+        
     
     # utility functions
     def load(self):

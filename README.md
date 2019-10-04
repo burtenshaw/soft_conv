@@ -23,8 +23,8 @@ Data should be structured:
 
 ```
 **Whatsapp**
-```python3 annon_schools_data.py --data #DATA_DIR# --type wa```
+```python3 annon_schools_data.py --data #DATA_DIR# --platform wa```
 
 **Facebook**
-```python3 annon_schools_data.py --data #DATA_DIR# --type fb```
+```python3 annon_schools_data.py --data #DATA_DIR# --platform fb```
 
