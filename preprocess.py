@@ -75,7 +75,8 @@ class instantMessage:
         try:
             utc = int(parser.parse(date).timestamp())
         except:
-            utc: None
+            utc = None
+            
         return {"conv_n":self.conv_n,
                 "line_n" : n_line, 
                 "utc":utc, 
