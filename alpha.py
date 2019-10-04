@@ -152,7 +152,7 @@ class matchDataSets:
     
     def match_many(self, conv_idx, beta_contact_name, proposed_chatter_ids, beta_contact_int):
         self.manual_df.at[conv_idx, 'conv_id'] = conv_idx
-        self.manual_df.at[conv_idx, 'source'] = self.beta_df[int(conv_idx)]['source']
+        # self.manual_df.at[conv_idx, 'source'] = self.conv_df[conv_idx]['source']
         self.manual_df.at[conv_idx, 'contact name'] = beta_contact_name
         
         matches = []
@@ -160,10 +160,10 @@ class matchDataSets:
         for n, chatter_id in enumerate(proposed_chatter_ids):
             self.manual_df.at[conv_idx, 'user_%s_proposed_chatter_id_%s' % (beta_contact_int, n)] = str(chatter_id)
             self.manual_df.at[conv_idx, 'user_%s_proposed_alpha_name_%s' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
-#                 manual_df.at[idx, 'proposed_examples_%s' % _n] = str(alpha_line_df.loc[k]['post'])
+#                 self.manual_df.at[idx, 'proposed_examples_%s' % _n] = str(self.alpha_df.loc[chatter_id]['post'])
             match = self.match_one(conv_idx,beta_contact_name,chatter_id)
             matches.append(match)
         
         for n, chatter_id in enumerate(matches):
             self.manual_df.at[conv_idx, 'user_%s_match_%s_chatter_id' % (beta_contact_int, n)] = chatter_id
-            self.manual_df.at[conv_idx, 'user_%s_match_%s_alpha_name' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
+            # self.manual_df.at[conv_idx, 'user_%s_match_%s_alpha_name' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
