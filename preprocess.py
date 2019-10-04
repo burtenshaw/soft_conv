@@ -224,7 +224,7 @@ class facebook(instantMessage):
             lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
 
-        date_range = [lines[0]['utc'], lines[-1]['utc']]
+        # date_range = [lines[0]['utc'], lines[-1]['utc']]
         return {"lines":lines, 
                 "user_seq":users_seq, 
                 "users":users, 
