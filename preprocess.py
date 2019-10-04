@@ -37,8 +37,7 @@ class instantMessage:
     # utility functions
     def load(self):
         if self.school:
-            self_dir = "/home/burtenshaw/data/teen/raw_demo/scool_example"
-            dir_of_schools = os.listdir(self_dir)
+            dir_of_schools = os.listdir(self.dir)
             all_files = []
             for school in dir_of_schools:
                 school_path = self_dir+'/'+school+'/'
