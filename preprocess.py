@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from dateutil import parser
 
-import pandas as pd
+# import pandas as pd
 from collections import defaultdict
 import itertools
 import difflib
@@ -76,7 +76,7 @@ class instantMessage:
             utc = int(parser.parse(date).timestamp())
         except:
             utc = None
-            
+
         return {"conv_n":self.conv_n,
                 "line_n" : n_line, 
                 "utc":utc, 
