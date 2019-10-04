@@ -228,6 +228,6 @@ class facebook(instantMessage):
         return {"lines":lines, 
                 "user_seq":users_seq, 
                 "users":users, 
-                "date_range":date_range,
+                # "date_range":date_range,
                 "source": file,
                 "users_key": users_key}  
