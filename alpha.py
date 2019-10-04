@@ -97,7 +97,8 @@ class proposeUsers:
 class matchDataSets:
     def __init__(self, alpha_df, beta_df, alpha_key, conv_df):
         self.alpha_df, self.beta_df, self.conv_df = alpha_df, beta_df, conv_df
-        self.alpha_key_reversed, self.alpha_key = self._reverse_key(), alpha_key
+        self.alpha_key = alpha_key
+        self.alpha_key_reversed = self._reverse_key()
         self.manual_df = pd.DataFrame()
 
     # utility functions

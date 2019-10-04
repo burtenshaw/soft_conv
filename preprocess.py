@@ -183,8 +183,12 @@ class lineByline(instantMessage):
                 
         lines = [l[1] for l in lines.items()]  
         users, users_seq = self.users(lines)
+        
         if self.remove_names:
             lines, users_key = self.anon(lines, users)
+            users, users_seq = self.users(lines)
+        else:
+            users_key = users
             users, users_seq = self.users(lines)
 
         date_range = [lines[0]['utc'], lines[-1]['utc']]
