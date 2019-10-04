@@ -116,8 +116,21 @@ class matchDataSets:
 
     # matching instances
 
-    def match_none(self, beta_contact_name):
-        pass
+    def match_none(self, conv_idx, beta_contact_name, beta_contact_int):
+        conv_lines = [line['text'] for line in self.beta_df[int(conv_idx)] if type(line) == dict and line['user'] == beta_contact_name]
+        if len(conv_lines) > 3:
+            conv_lines.sort(key=len, reverse=True)
+            beta_examples = conv_lines[:3]
+        else:
+            beta_examples = conv_lines
+
+        matches = []
+
+        for alpha_idx, row in self.alpha_df.iterrows():
+            if row['post'] in beta_examples:
+                matches.append(row['chatter_ID'])
+        
+        self.match_many(conv_idx, beta_contact_name, matches, beta_contact_int)
         
     def match_one(self, conv_idx, beta_contact_name, chatter_id):
         conv_lines = [line['text'] for line in self.beta_df[int(conv_idx)] if type(line) == dict and line['user'] == beta_contact_name]
