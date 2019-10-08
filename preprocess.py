@@ -234,4 +234,6 @@ class facebook(instantMessage):
                 "users":users, 
                 # "date_range":date_range,
                 "source": file,
-                "users_key": users_key}  
+                # "users_key": users_key
+                }
+
