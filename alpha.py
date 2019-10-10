@@ -3,6 +3,8 @@ import difflib
 import itertools
 import pandas as pd
 import json
+import ast 
+from tqdm import tqdm
 
 class alphaData:
     def __init__(self, src_path, names):
@@ -95,11 +97,16 @@ class proposeUsers:
     
 
 class matchDataSets:
-    def __init__(self, alpha_df, beta_df, alpha_key, conv_df):
-        self.alpha_df, self.beta_df, self.conv_df = alpha_df, beta_df, conv_df
+    def __init__(self, alpha, beta, alpha_key, proposal_df):
+        alpha.line_df.index = alpha.line_df['chatter_ID']
+        self.alpha = alpha
+        self.beta = beta
+        self.proposal_df = proposal_df
         self.alpha_key = alpha_key
         self.alpha_key_reversed = self._reverse_key()
+        
         self.manual_df = pd.DataFrame()
+        self.user_df = pd.DataFrame()
 
     # utility functions
 
@@ -114,56 +121,99 @@ class matchDataSets:
         school = self.conv_df.at[conv_idx, 'school']
         # get more meta info from beta, and use it to match
         pass
+    
+    def get_beta_lines(self, conv_idx, beta_contact_name):
+        beta_lines = []
+        for line in self.beta.line_df.loc[conv_idx]:
+            if type(line) == dict:
+#                 print(conv_idx, ' ::', line)
+#                 print(line['user'], ':', beta_contact_name)
+                if line['user'] == beta_contact_name:  
+                    beta_lines.append(str(line['text']).lower().strip('\n')[1:])
+#         conv_lines = [line['text'] for line in self.beta.line_df[int(conv_idx)] if type(line) == dict and line['user'] == beta_contact_name]
+        return beta_lines
 
-    # matching instances
+    def get_alpha_lines(self, chatter_id):
+        try:
+            return [str(x).lower() for x in list(self.alpha.line_df.loc[chatter_id]['post'])]
+        except KeyError:
+            return []
+
 
     def match_none(self, conv_idx, beta_contact_name, beta_contact_int):
-        conv_lines = [line['text'] for line in self.beta_df[int(conv_idx)] if type(line) == dict and line['user'] == beta_contact_name]
-        if len(conv_lines) > 3:
-            conv_lines.sort(key=len, reverse=True)
-            beta_examples = conv_lines[:3]
-        else:
-            beta_examples = conv_lines
+        beta_examples = self.get_beta_lines(conv_idx, beta_contact_name)
+        if len(beta_examples) > 3:
+            beta_examples.sort(key=len, reverse=True)
+            beta_examples = beta_examples[:3]
 
-        matches = []
+            matches = []
 
-        for alpha_idx, row in self.alpha_df.iterrows():
-            if row['post'] in beta_examples:
-                matches.append(row['chatter_ID'])
+            for alpha_idx, row in self.alpha.line_df.iterrows():
+                if str(row['post']).lower() in beta_examples:
+                    matches.append(row['chatter_ID'])
+                    
+            if len(matches) > 0:
+                self.match_many(conv_idx, beta_contact_name, matches, beta_contact_int)
         
-        self.match_many(conv_idx, beta_contact_name, matches, beta_contact_int)
-        
-    def match_one(self, conv_idx, beta_contact_name, chatter_id):
-        conv_lines = [line['text'] for line in self.beta_df[int(conv_idx)] if type(line) == dict and line['user'] == beta_contact_name]
-        if len(conv_lines) > 3:
-            conv_lines.sort(key=len, reverse=True)
-            beta_examples = conv_lines[:3]
-        else:
-            beta_examples = conv_lines
-        # get line form alpha
-        try:
-            alpha_examples = list(self.alpha_df.loc[chatter_id]['post'])
-        except KeyError:
-            return 0
-        if(all(x in alpha_examples for x in beta_examples)):
-            return str(chatter_id)
-        else:
-            return 0
+    def match_one(self, conv_idx, beta_contact_name, chatter_id, beta_contact_int):
+        # get beta examples
+        beta_examples = self.get_beta_lines(conv_idx, beta_contact_name)
+        beta_user_idx = str(conv_idx) + '_' + str(beta_contact_int)
+#         print('len examples: ',len(beta_examples))
+        if len(beta_examples) > 3:
+#             print(conv_idx)
+#             print(beta_contact_name)
+#             print(self.alpha_key_reversed[chatter_id])
+#             print(chatter_id)
+            beta_examples.sort(key=len, reverse=True)
+            beta_examples = beta_examples[:3]
+            # get alpha examples      
+            alpha_examples = self.get_alpha_lines(chatter_id)
+#             print('a ----', alpha_examples)
+#             print('b ----', beta_examples)      
+            # match the two
+            if(all(x in alpha_examples for x in beta_examples)):
+#                 print(chatter_id)
+#                 print('a ----', alpha_examples[0])
+#                 print('b ----', beta_examples[0])
+                self.user_df = self.user_df.astype('object')
+                self.user_df.at[beta_user_idx, 'alpha_chatter_id'] = chatter_id
+                return True
+
     
     def match_many(self, conv_idx, beta_contact_name, proposed_chatter_ids, beta_contact_int):
-        self.manual_df.at[conv_idx, 'conv_id'] = conv_idx
-        # self.manual_df.at[conv_idx, 'source'] = self.conv_df[conv_idx]['source']
-        self.manual_df.at[conv_idx, 'contact name'] = beta_contact_name
-        
-        matches = []
-
+        beta_user_idx = str(conv_idx) + '_' + str(beta_contact_int)
+        self.manual_df.at[beta_user_idx, '_'] = 0
         for n, chatter_id in enumerate(proposed_chatter_ids):
-            self.manual_df.at[conv_idx, 'user_%s_proposed_chatter_id_%s' % (beta_contact_int, n)] = str(chatter_id)
-            self.manual_df.at[conv_idx, 'user_%s_proposed_alpha_name_%s' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
-#                 self.manual_df.at[idx, 'proposed_examples_%s' % _n] = str(self.alpha_df.loc[chatter_id]['post'])
-            match = self.match_one(conv_idx,beta_contact_name,chatter_id)
-            matches.append(match)
-        
-        for n, chatter_id in enumerate(matches):
-            self.manual_df.at[conv_idx, 'user_%s_match_%s_chatter_id' % (beta_contact_int, n)] = chatter_id
-            # self.manual_df.at[conv_idx, 'user_%s_match_%s_alpha_name' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
+            match = self.match_one(conv_idx,beta_contact_name,chatter_id,beta_contact_int)
+            if match:
+                self.manual_df.drop([beta_user_idx], inplace=True)
+                break
+            else:
+                self.manual_df.at[beta_user_idx, 'conv_id'] = conv_idx
+                # self.manual_df.at[conv_idx, 'source'] = self.conv_df[conv_idx]['source']
+                self.manual_df.at[beta_user_idx, 'contact name'] = beta_contact_name
+
+                self.manual_df.at[beta_user_idx, 'user_%s_proposed_chatter_id_%s' % (beta_contact_int, n)] = str(chatter_id)
+                self.manual_df.at[beta_user_idx, 'user_%s_proposed_alpha_name_%s' % (beta_contact_int, n)] = self.alpha_key_reversed[chatter_id]
+    #                 self.manual_df.at[idx, 'proposed_examples_%s' % _n] = str(self.alpha_df.loc[chatter_id]['post'])
+    
+    def run(self):
+        with tqdm(total=self.proposal_df.shape[0]) as pbar:
+            for conv_idx, row in tqdm(self.proposal_df.iterrows()):
+                for n, beta_contact_name in enumerate(row['users']):
+                    proposed_chatter_ids = ast.literal_eval(row['user_%s_keys' % n])
+
+                    # instance with no matches in key
+                    if len(proposed_chatter_ids) == 0:
+                        self.match_none(conv_idx, beta_contact_name, n)
+
+                    # instances with only one match
+                    if len(proposed_chatter_ids) == 1:
+                        self.match_one(conv_idx,beta_contact_name, proposed_chatter_ids[0], n)
+
+                    # instances with multiple matches
+                    if len(proposed_chatter_ids) > 1:
+                        self.match_many(conv_idx, beta_contact_name, proposed_chatter_ids, n)
+                    
+                    pbar.update(1/len(row['users']))
