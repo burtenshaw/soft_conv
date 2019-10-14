@@ -206,6 +206,7 @@ class whatsApp(instantMessage):
     '''
     pass
 
+
 class facebook(instantMessage):
     ''' 
         Due to the periodic structuring of facebook conversations, it's useful to handle them in their own way.
@@ -215,12 +216,21 @@ class facebook(instantMessage):
         print("parsing file: ", file)
         r = re.compile(self.pattern['conv'])
         with open(file, 'r', encoding="utf-8") as f:
-            return ''.join([m.groupdict()['exchange'] for m in r.finditer(f.read())])
+            conv = ''.join([m.groupdict()['exchange'] for m in r.finditer(f.read())])
+        if len(conv) == 0:
+            with open(file, 'r', encoding="utf-8") as f:
+                conv = f.read()
+# if variations persist add structure types
+#             self.file_structure = 'no_divide'
+        return conv
 
     def conversation(self, file):
         f = self.regex_file(file)
         r = re.compile(self.pattern['line'])
         doc = [m.groupdict() for m in r.finditer(f)]
+
+        #TODO VALIDATE doc before looking for line
+
         lines = [self.line(l, n) for n, l in enumerate(doc)]
         self.lines = lines    
         users, users_seq = self.users(lines)
@@ -236,4 +246,3 @@ class facebook(instantMessage):
                 "source": file,
                 # "users_key": users_key
                 }
-
