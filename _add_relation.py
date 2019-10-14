@@ -1,4 +1,3 @@
-import pandas as pd
 from preprocess import instantMessage
 
 pattern = '(?P<path>(?:.*))\/(?P<school>.*)\/(?P<year>\d{4})\_(?P<medium>.+)\_(?P<gender>same|mixed)\_(?P<private>private|group)\_(?P<relationship>.+)\_(?P<name>.+)\.txt'
@@ -7,12 +6,7 @@ class relation_only(instantMessage):
             path = self.grab_filename(file,self.pattern)
             path['source_file'] = file
             return path
-        
-        def run(self):
-            print("iterating over files")
-            paths = self.fileIter()
-            df = pd.DataFrame.from_dict(paths, orient='index')
-            df.to_csv(self.output_dir)
+
 if __name__== "__main__":
 
     argparser = argparse.ArgumentParser()
