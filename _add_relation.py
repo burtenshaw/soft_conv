@@ -1,4 +1,5 @@
 from preprocess import instantMessage
+import argparse
 
 pattern = '(?P<path>(?:.*))\/(?P<school>.*)\/(?P<year>\d{4})\_(?P<medium>.+)\_(?P<gender>same|mixed)\_(?P<private>private|group)\_(?P<relationship>.+)\_(?P<name>.+)\.txt'
 class relation_only(instantMessage):
