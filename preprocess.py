@@ -62,8 +62,11 @@ class instantMessage:
         return lines, users_key
 
     def grab_filename(self, filename, pattern):
-        result = re.match(pattern, filename)
-        return result.groupdict()
+        try:
+            result = re.match(pattern, filename)
+            return result.groupdict()
+        except AttributeError:
+            print("Filename unrecognised: ", filename)
     
     def anon_filenames(self,filename):
         return filename
