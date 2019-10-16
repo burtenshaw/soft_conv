@@ -24,5 +24,5 @@ if __name__== "__main__":
     argparser.add_argument("--data", help="directory of instant messaging conversations")
     args = argparser.parse_args()
           
-    r = relation_only(pattern=pattern, data_dir=args.data, out_dir='conversation_paths.json',)
+    r = relation_only(data_dir=args.data, out_dir='conversation_paths.json',)
     r.run()
