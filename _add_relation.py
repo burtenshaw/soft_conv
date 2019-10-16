@@ -1,7 +1,6 @@
 from preprocess import instantMessage
 import argparse
 
-2016_WhatsApp_unknown_private_unknown_kayleeelvidge.txt
 class relation_only(instantMessage):
         def conversation(self,path):
             try:
