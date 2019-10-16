@@ -1,12 +1,23 @@
 from preprocess import instantMessage
 import argparse
 
-pattern = '(?P<path>(?:.*))\/(?P<school>.*)\/(?P<year>\d{4})\_(?P<medium>.+)\_(?P<gender>same|mixed)\_(?P<private>private|group)\_(?P<relationship>.+)\_(?P<name>.+)\.txt'
+2016_WhatsApp_unknown_private_unknown_kayleeelvidge.txt
 class relation_only(instantMessage):
-        def conversation(self,file):
-            path = self.grab_filename(file,self.pattern)
-            path['source_file'] = file
-            return path
+        def conversation(self,path):
+            try:
+                _path = path.split('/')
+                filename = path[2].split('_')
+                return {
+                    'source_file':path,
+                    'school': _path[1],
+                    'year': filename[0],
+                    'platform':filename[1],
+                    'genders':filename[2],
+                    'privacy':filename[3],
+                    'name':filename[4]}
+            except IndexError:
+                print('Filename Error: ', path)
+                return path
 
 if __name__== "__main__":
 
