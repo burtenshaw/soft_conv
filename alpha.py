@@ -6,8 +6,35 @@ import json
 import ast 
 from tqdm import tqdm
 
+names = {
+        'all': ["post", "chatter_ID", "medium", "year", "conv_sex", "conv_size", "gender", "age", "region", "education", "language", "prof", "prof_cat", "permission", "permission_parents", "school", "in_gesprek"],
+        'line_fields' : [
+        "post",
+        "chatter_ID",
+        "medium",
+        "year",
+        "conv_sex",
+        "conv_size"
+                ],
+         'user_fields' : [
+        "chatter_ID",
+        "gender",
+        "age",
+        "region",
+        "education",
+        "language",
+        "prof",
+        "prof_cat",
+        "permission",
+        "permission_parents",
+        "school",
+        "in_gesprek"
+         ]
+        }
+
 class alphaData:
-    def __init__(self, src_path, names):
+    def __init__(self, src_path, website_encoding, manual_encoding, names=names):
+        self.encodings = [website_encoding, manual_encoding]
         self.src = src_path
         self.names = names
         self.load()
@@ -22,7 +49,8 @@ class alphaData:
         
         gp = self.df.groupby('chatter_ID', sort=False)
         user_df['lines_n'] = pd.Series(dict(gp.groups))
-        
+        user_df['lines_n'] = [list(n) for n in user_df['lines_n']]
+
         self.user_df = user_df
 
     def make_line_df(self):
@@ -35,6 +63,47 @@ class alphaData:
     def save(self, output_dir):
         self.line_df.to_csv(output_dir+"alpha_lines.csv")
         self.user_df.to_csv(output_dir+"alpha_users.csv")
+        
+    def search(self, name):
+        ID = None
+        for n, e in enumerate(self.encodings):           
+            codings_file = open(e,'rt', encoding = 'latin-1').read()
+            codings_names = codings_file.split("\n")
+
+            # we look for the correct coding
+            if n == 0: 
+                for item in codings_names:
+                    fields = item.split(';')
+                    # if the length of the line is valid, the fields contain the necessary info
+                    if len(fields)>=23:
+                        field_ID = fields[0]
+                        field_first_name = fields[9]
+                        field_last_name = fields[10]
+                        field_name = str(field_first_name)+' '+str(field_last_name)
+                        # we search for the name
+                        if name.lower() == field_name.lower():
+                            # we strip away whitespace for the ID
+                            if (field_ID[0] == '\n') or (field_ID[0] == '\r'):
+                                field_ID = field_ID[1:]
+                            ID = 'website '+str(field_ID)
+                            break
+            else:
+                for item in codings_names:
+                    fields = item.split(';')
+                    if len(fields)>1:
+                        # if the line contains more than one field, it holds an ID and a name
+                        field_ID = fields[0]
+                        field_name = fields[1]
+                        # we search for the name in the coding file
+                        if name.lower() == field_name.lower():
+                            # we do not take whitespace into account for the ID
+                            if (field_ID[0] == '\n') or (field_ID[0] == '\r'):
+                                field_ID = field_ID[1:]
+                            ID = field_ID
+                            break
+        return ID
+
+
 
 class betaData:
     def __init__(self, conversation_json):
@@ -202,6 +271,10 @@ class matchDataSets:
         with tqdm(total=self.proposal_df.shape[0]) as pbar:
             for conv_idx, row in tqdm(self.proposal_df.iterrows()):
                 for n, beta_contact_name in enumerate(row['users']):
+                    beta_user_idx = str(conv_idx) + '_' + str(n)
+
+                    self.user_df.at[beta_user_idx, 'beta_contact_name'] = beta_contact_name
+
                     proposed_chatter_ids = ast.literal_eval(row['user_%s_keys' % n])
 
                     # instance with no matches in key
@@ -217,3 +290,5 @@ class matchDataSets:
                         self.match_many(conv_idx, beta_contact_name, proposed_chatter_ids, n)
                     
                     pbar.update(1/len(row['users']))
+
+

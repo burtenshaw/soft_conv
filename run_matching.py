@@ -88,5 +88,5 @@ for idx, row in beta.conv_df.iterrows():
 m = matchDataSets(alpha, beta, alpha_user_key, proposal_df)
 m.run()
 
-m.user_df.to_csv('beta_user.csv')
-m.manual_df.to_csv('beta_manual.csv')
+m.user_df.to_csv('/home/burtenshaw/data/teen/beta/matching/beta_user.csv')
+m.manual_df.to_csv('/home/burtenshaw/data/teen/beta/matching/beta_manual.csv')
