@@ -33,11 +33,28 @@ names = {
         }
 
 class alphaData:
-    def __init__(self, src_path, website_encoding, manual_encoding, names=names):
+    def __init__(self, src_path=None, alpha_key=None, website_encoding=None, manual_encoding=None, names=names):
+        self.key = alpha_key
         self.encodings = [website_encoding, manual_encoding]
         self.src = src_path
         self.names = names
-        self.load()
+        if src_path:
+            self.load()
+
+    def build_key(self, keys_output=None):
+        key_dict = {}
+
+        web = pd.read_csv(self.encodings[0], delimiter=';')
+        web.columns = web.iloc[1]
+        web = web.drop([0,1,2,3,4,5])
+        for _, row in web.iterrows():
+            key_dict['website ' + str(row.Serial)] = str(row.Voornaam) + ' ' + str(row.Familienaam)
+
+        manual= pd.read_csv(self.encodings[1], delimiter=';')
+        for _, row in manual.iterrows():
+            key_dict[str(row['ID Chatter'])] = str(row[1])
+        
+        self.key = key_dict
 
     def load(self):
         self.df = pd.read_csv(self.src, delimiter='\t', names=self.names['all'])
@@ -64,105 +81,71 @@ class alphaData:
         self.line_df.to_csv(output_dir+"alpha_lines.csv")
         self.user_df.to_csv(output_dir+"alpha_users.csv")
         
-    def search(self, name):
-        ID = None
-        for n, e in enumerate(self.encodings):           
-            codings_file = open(e,'rt', encoding = 'latin-1').read()
-            codings_names = codings_file.split("\n")
+    def search(self, contact):
+        chatter_ID = []
+        for field_ID, field_name in self.key.items():
+            if field_name.lower() == contact.lower():
+                chatter_ID.append(field_ID)
+        if len(chatter_ID) == 0:
+            chatter_ID = [None]
+        return chatter_ID
 
-            # we look for the correct coding
-            if n == 0: 
-                for item in codings_names:
-                    fields = item.split(';')
-                    # if the length of the line is valid, the fields contain the necessary info
-                    if len(fields)>=23:
-                        field_ID = fields[0]
-                        field_first_name = fields[9]
-                        field_last_name = fields[10]
-                        field_name = str(field_first_name)+' '+str(field_last_name)
-                        # we search for the name
-                        if name.lower() == field_name.lower():
-                            # we strip away whitespace for the ID
-                            if (field_ID[0] == '\n') or (field_ID[0] == '\r'):
-                                field_ID = field_ID[1:]
-                            ID = 'website '+str(field_ID)
-                            break
-            else:
-                for item in codings_names:
-                    fields = item.split(';')
-                    if len(fields)>1:
-                        # if the line contains more than one field, it holds an ID and a name
-                        field_ID = fields[0]
-                        field_name = fields[1]
-                        # we search for the name in the coding file
-                        if name.lower() == field_name.lower():
-                            # we do not take whitespace into account for the ID
-                            if (field_ID[0] == '\n') or (field_ID[0] == '\r'):
-                                field_ID = field_ID[1:]
-                            ID = field_ID
-                            break
-        return ID
+    def get_user_lines(self, chatter_id):
+        try:
+            return [str(x).lower() for x in list(self.line_df.loc[chatter_id]['post'])]
+        except KeyError:
+            return []
 
 
-
-class betaData:
-    def __init__(self, conversation_json):
-        with open(conversation_json, 'r') as f:
-            self.conv_data = json.load(f)
-        self.line_df = self.make_lines_df()
-        self.conv_df = self.make_conv_df()
+# class betaData:
+#     def __init__(self, conversation_json):
+#         with open(conversation_json, 'r') as f:
+#             self.conv_data = json.load(f)
+#         self.line_df = self.make_lines_df()
+#         self.conv_df = self.make_conv_df()
     
-    def make_lines_df(self):
-        df = pd.DataFrame.from_dict(self.conv_data, orient='index')['lines']
-        df = pd.DataFrame(data=df)
-        df = df.lines.apply(pd.Series)
-        return df
+#     def make_lines_df(self):
+#         df = pd.DataFrame.from_dict(self.conv_data, orient='index')['lines']
+#         df = pd.DataFrame(data=df)
+#         df = df.lines.apply(pd.Series)
+#         return df
         
-    def make_conv_df(self):
-        df = pd.DataFrame.from_dict(self.conv_data, orient='index')
-        df.drop(columns=['lines', 'user_seq', 'users_key'], inplace=True)
-        return df
+#     def make_conv_df(self):
+#         df = pd.DataFrame.from_dict(self.conv_data, orient='index')
+#         df.drop(columns=['lines', 'user_seq', 'users_key'], inplace=True)
+#         return df
 
 
 class proposeUsers:
-    def __init__(self, users, users_list, filename, pattern, users_df, look_up=True):
+    def __init__(self, contact_name, alpha_object):
         '''
             Given a conversation instance from instant messaging, attempt to match users with alpha data.
         '''
-        self.pattern, self.users_list , self.users, self.df, self.look_up = pattern, users_list, users, users_df, look_up
-        self.f_data = self.grab_filename(filename)
-        self.proposed_names = self.possible_names()
+        self.contact = contact_name
+        self.alpha = alpha_object
         self.validated_names = self.check_key()
-        
-    def grab_filename(self, filename):
-        try:
-            # filename = filename.split('/')[1]
-            result = re.match(self.pattern, filename).groupdict()
-            self.source_user = result['name']
-            return result
-        except AttributeError:
-            print("Unexpected structure in filename: ", filename)
-        
+         
     def possible_names(self):
-        return {u : difflib.get_close_matches(u, self.users_list, n=3, cutoff=0.8) for u in self.users}
+        all_names = [x[1] for x in list(self.alpha.key.items())]
+        return difflib.get_close_matches(self.contact, all_names, n=3, cutoff=0.75)
     
-    def check_df(self, pos, df):
-        for k, i in pos.items():
-            for idx in i['keys']:
+    def check_alpha(self, validated_chatter_IDs):
+        for alpha_name, chatter_ids in validated_chatter_IDs.items():
+            in_alpha = []
+            for c in chatter_ids:
                 try:
-                    df.loc[idx]
-                    pos[k]['record'] = idx
+                    self.alpha.user_df.loc[c]
+                    in_alpha.append(c)
                 except KeyError:
                     pass
-        return pos
+            validated_chatter_IDs[alpha_name] = in_alpha
+        return validated_chatter_IDs
 
     def check_key(self):
         validated = {}
-        for k, i in self.proposed_names.items():
-            validated[k] = {'name':i, 'keys' :list(itertools.chain.from_iterable([self.users_list[_n] for _n in i]))}
-        if self.look_up:
-            validated = self.check_df(validated, self.df)
-        return validated
+        for p in self.possible_names():
+            validated[p] = self.alpha.search(p)
+        return self.check_alpha(validated)
     
 
 class matchDataSets:
