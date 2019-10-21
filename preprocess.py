@@ -261,22 +261,21 @@ class facebook(instantMessage):
             
     def conversation(self, file):
         conv = self.regex_file(file)
-        if len(conv) == 0:
-            doc = self.by_line(file)
-        else:
-            r = re.compile(self.pattern['line'])
-            doc = [m.groupdict() for m in r.finditer(conv)]
-
-        #TODO VALIDATE doc before looking for line
-
+        r = re.compile(self.pattern['line'])
+        doc = [m.groupdict() for m in r.finditer(conv)]
         lines = [self.line(l, n) for n, l in enumerate(doc)]
+
+        if len(lines) == 0:
+            doc = self.by_line(file)
+            lines = [self.line(l, n) for n, l in enumerate(doc)]
+        if len(lines) == 0:
+            self.errors.append(file)
+
         self.lines = lines    
         users, users_seq = self.users(lines)
         if self.remove_names:
             lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
-        if len(lines) == 0:
-            self.errors.append(file)
 
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
         return {"lines":lines, 
