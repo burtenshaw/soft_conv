@@ -243,7 +243,7 @@ class facebook(instantMessage):
             
         raw_lines = []
         for n, line in enumerate(lines):
-            if r.match(line):
+            if r.match(line) or n == 0:
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
             else:
                 try:
@@ -260,7 +260,6 @@ class facebook(instantMessage):
                     pass
 
         return raw_lines
-
             
     def conversation(self, file):
         conv = self.regex_file(file)
