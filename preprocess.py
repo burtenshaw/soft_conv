@@ -229,7 +229,7 @@ class facebook(instantMessage):
         return conv
     
     def by_line(self, file):
-        r = re.compile(self.pattern['date'], flags=re.MULTILINE)
+        r = re.compile(self.pattern['line_date'], flags=re.MULTILINE)
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
             lines = r.split(conv)
