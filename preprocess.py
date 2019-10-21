@@ -218,22 +218,45 @@ class facebook(instantMessage):
         Due to the periodic structuring of facebook conversations, it's useful to handle them in their own way.
         This allows us to also get seperate coversations instances, defined by time.
     '''
+    
     def regex_file(self, file):
         print("parsing file: ", file)
         r = re.compile(self.pattern['conv'])
         with open(file, 'r', encoding="utf-8") as f:
             conv = ''.join([m.groupdict()['exchange'] for m in r.finditer(f.read())])
-        if len(conv) == 0:
-            with open(file, 'r', encoding="utf-8") as f:
-                conv = f.read()
 # if variations persist add structure types
 #             self.file_structure = 'no_divide'
         return conv
+    
+    def by_line(self, file):
+        r = re.compile(self.pattern['date'], flags=re.MULTILINE)
+        with open(file, 'r', encoding="utf-8") as f:
+            conv = f.read()
+            lines = r.split(conv)
+            
+        raw_lines = []
+        for n, line in enumerate(lines):
+            if r.match(line):
+                raw_lines.append({'line_n':n,'date':line, 'text':''})
+            else:
+                try:
+                    if type(raw_lines[-1]) == dict and line is not '':
+                        _line = line.split('\n')
+                        raw_lines[-1]['raw_message'] = line
+                        raw_lines[-1]['user'] = _line[1]
+                        raw_lines[-1]['text'] = '\n'.join(_line[2:-2])
+                except IndexError:
+                    pass
 
+        return raw_lines
+            
     def conversation(self, file):
-        f = self.regex_file(file)
-        r = re.compile(self.pattern['line'])
-        doc = [m.groupdict() for m in r.finditer(f)]
+        conv = self.regex_file(file)
+        if len(conv) == 0:
+            doc = self.by_line(file)
+        else:
+            r = re.compile(self.pattern['line'])
+            doc = [m.groupdict() for m in r.finditer(conv)]
 
         #TODO VALIDATE doc before looking for line
 
@@ -247,7 +270,7 @@ class facebook(instantMessage):
             self.errors.append(file)
 
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
-        conv = {"lines":lines, 
+        return {"lines":lines, 
                 "user_seq":users_seq, 
                 "users":users, 
                 # "date_range":date_range,
@@ -255,3 +278,4 @@ class facebook(instantMessage):
                 # "users_key": users_key
                 }
         
+
