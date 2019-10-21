@@ -237,10 +237,10 @@ class facebook(instantMessage):
         raw_lines = []
         for n, line in enumerate(lines):
             if r.match(line):
-                raw_lines.append({'line_n':n,'date':line, 'text':''})
+                raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
             else:
                 try:
-                    if type(raw_lines[-1]) == dict and line is not '':
+                    if type(raw_lines[-1]) == dict and line is not '' or '\n':
                         _line = line.split('\n')
                         raw_lines[-1]['raw_message'] = line
                         raw_lines[-1]['user'] = _line[1]
