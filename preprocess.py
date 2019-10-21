@@ -242,6 +242,7 @@ class facebook(instantMessage):
             lines = r.split(conv)
             
         raw_lines = []
+        r = re.compile(self.pattern['line_date'])
         for n, line in enumerate(lines):
             if r.match(line) or n == 0:
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
@@ -260,7 +261,21 @@ class facebook(instantMessage):
                     pass
 
         return raw_lines
-            
+
+    def rough_split(self, file):
+        with open(file, 'r', encoding="utf-8") as f:
+            conv = f.read()
+            lines = conv.split('\n')
+        r = re.compile(self.pattern['line_date'])
+        raw_lines = []
+        for n, line in enumerate(lines):
+            if r.match(line) or n == 0:
+                raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
+            else:
+                raw_lines.append({'line_n':n,'date':'', 'text':line, 'user': ''})
+
+        return raw_lines
+
     def conversation(self, file):
         conv = self.regex_file(file)
         r = re.compile(self.pattern['line'])
@@ -269,6 +284,9 @@ class facebook(instantMessage):
 
         if len(lines) == 0:
             doc = self.by_line(file)
+            lines = [self.line(l, n) for n, l in enumerate(doc)]
+        if len(lines) == 0:
+            doc = self.rough_split(file)
             lines = [self.line(l, n) for n, l in enumerate(doc)]
         if len(lines) == 0:
             self.errors.append(file)
