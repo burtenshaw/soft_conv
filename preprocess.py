@@ -243,6 +243,8 @@ class facebook(instantMessage):
         if self.remove_names:
             lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
+        if len(lines) == 0:
+            self.errors.append(file)
 
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
         conv = {"lines":lines, 
