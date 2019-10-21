@@ -250,8 +250,11 @@ class facebook(instantMessage):
                     if type(raw_lines[-1]) == dict:
                         _line = line.split('\n')
                         raw_lines[-1]['raw_message'] = line
-                        raw_lines[-1]['user'] = _line[1]
-                        raw_lines[-1]['text'] = '\n'.join(_line[2:-2])
+                        try:
+                            raw_lines[-1]['user'] = _line[1]
+                            raw_lines[-1]['text'] = '\n'.join(_line[2:-2])
+                        except:
+                            pass
                         
                 except IndexError:
                     pass
