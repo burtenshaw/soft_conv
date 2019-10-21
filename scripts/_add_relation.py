@@ -1,3 +1,11 @@
+import os
+try:
+	os.chdir(os.path.join(os.getcwd(), '../'))
+	print(os.getcwd())
+except:
+	pass
+
+
 from preprocess import instantMessage
 import argparse
 

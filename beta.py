@@ -15,6 +15,26 @@ class betaData:
         if alpha_key:
             self.a = alphaData(alpha_key=alpha_key)
             self.contact_df = self.make_contact_df()
+            
+    # utility functions
+
+    def clean_up_submitter(self, source):
+        raw_submitter = source.split('_')[-1].split('.')[0]
+        if len(raw_submitter) > 1:
+            try:
+                int(raw_submitter[-1])
+                try:
+                    int(raw_submitter[-2])
+                    clean = raw_submitter[:-2]
+                except ValueError:
+                    clean = raw_submitter[:-1]
+            except ValueError:
+                clean = raw_submitter
+        else:
+            clean = raw_submitter
+        return clean
+
+    #build dataframes
     
     def make_lines_df(self):
         lines = {}
@@ -33,9 +53,11 @@ class betaData:
         df = pd.DataFrame.from_dict(self.conv_data, orient='index')
         df.drop(columns=['lines', 'user_seq', 'users_key'], inplace=True)
         return df
-
+    
     def make_contact_df(self):
-        contacts= {}
+        
+        # build a base contact df for every conversation
+        contacts = {}
         for k, item in self.conv_data.items():
             for n, u in enumerate(item['users']):
                 user_idx = str(k) + '_' + str(n)
@@ -47,13 +69,42 @@ class betaData:
                 # rather than proceeding to resolve duplicates
                 chatter_id = self.a.search(u)[0]
                 
+                # clean up inconsistencies in the submitter field
+                clean_submitter = self.clean_up_submitter(item['source'])
+                
                 contacts[user_idx] = {'contact_name':u,
                                     'AS_ALPHA_chatter_id':chatter_id,
                                     'line_idxs':line_idxs,
                                     'source':item['source'],
                                     'school':school,
-                                    'submitter':submitter}
-        return pd.DataFrame.from_dict(contacts, orient='index')
+                                    'submitter':submitter,
+                                    'clean_submitter': clean_submitter}
+                
+        df = pd.DataFrame.from_dict(contacts, orient='index')
+        
+        # refine down contacts to only keep individual per submitter
+        submitters = df.groupby(['clean_submitter'])        
+        _ref = {}
+        for _, subm in submitters:
+            _conts = subm.groupby(['contact_name'])
+            for _, c in _conts:
+                s_c = ()
+                for idx, row in c.iterrows():
+                    s_c = s_c + (idx,)
+                _ref[s_c[0]] = s_c
+
+        submitter_contacts = {}
+        
+        for key, item in _ref.items():
+            data = contacts[key]
+            line_idxs = []
+            for idx in item:
+                line_idxs.extend(contacts[idx]['line_idxs'])
+            data['line_idxs'] = line_idxs
+            submitter_contacts[key] = data
+        
+        return pd.DataFrame.from_dict(submitter_contacts, orient='index')
+
 
     def get_contact_lines(self, beta_contact_idx):
         return list(self.line_df.loc[self.contact_df.loc[beta_contact_idx]['line_idxs']]['text'])

@@ -32,7 +32,7 @@ class instantMessage:
         self.remove_names = remove_names
         self.save_key = save_key
         self.pattern = pattern
-        
+        self.errors = []
     
     # utility functions
     def load(self):
@@ -87,7 +87,7 @@ class instantMessage:
                 "user":user, 
                 "text":text, 
                 "raw_date":date}
-
+        
     # single regex
     def conversation(self, file):
         """Approach using a single regex"""
@@ -103,7 +103,8 @@ class instantMessage:
         else:
             users_key = users
             users, users_seq = self.users(lines)
-        
+        if len(lines) == 0:
+            self.errors.append(file)
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
         return {"lines":lines, 
                 "user_seq":users_seq, 
@@ -143,6 +144,8 @@ class instantMessage:
     def save(self):
         with open(self.out_dir, 'w') as f:
             json.dump(self.data,f)
+        with open('empty_convs.json', 'w') as f:
+            json.dump(self.errors,f)
 #         self.csv = True
 #         if self.csv:
 #             self.make_csv()
@@ -242,10 +245,11 @@ class facebook(instantMessage):
             users, users_seq = self.users(lines)
 
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
-        return {"lines":lines, 
+        conv = {"lines":lines, 
                 "user_seq":users_seq, 
                 "users":users, 
                 # "date_range":date_range,
                 "source": file,
                 # "users_key": users_key
                 }
+        
