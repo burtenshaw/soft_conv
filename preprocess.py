@@ -80,13 +80,19 @@ class instantMessage:
             utc = int(parser.parse(date).timestamp())
         except:
             utc = None
+        
+        try:
+            raw_message = line['raw_message']
+        except KeyError:
+            raw_message = ''
 
         return {"conv_n":self.conv_n,
                 "line_n" : n_line, 
                 "utc":utc, 
                 "user":user, 
                 "text":text, 
-                "raw_date":date}
+                "raw_date":date,
+                "raw_message": raw_message}
         
     # single regex
     def conversation(self, file):
@@ -140,6 +146,7 @@ class instantMessage:
         self.data = self.fileIter()
         print("saving data")
         self.save()
+        print("empty conversation errors", len(self.errors))
         
     def save(self):
         with open(self.out_dir, 'w') as f:
@@ -240,15 +247,17 @@ class facebook(instantMessage):
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
             else:
                 try:
-                    if type(raw_lines[-1]) == dict and line is not '' or '\n':
+                    if type(raw_lines[-1]) == dict:
                         _line = line.split('\n')
                         raw_lines[-1]['raw_message'] = line
                         raw_lines[-1]['user'] = _line[1]
                         raw_lines[-1]['text'] = '\n'.join(_line[2:-2])
+                        
                 except IndexError:
                     pass
 
         return raw_lines
+
             
     def conversation(self, file):
         conv = self.regex_file(file)
