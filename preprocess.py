@@ -271,7 +271,7 @@ class facebook(instantMessage):
         for n, line in enumerate(lines):
             if r.match(line) or n == 0:
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
-            else:
+            elif line is not '':
                 raw_lines.append({'line_n':n,'date':'', 'text':line, 'user': ''})
 
         return raw_lines
