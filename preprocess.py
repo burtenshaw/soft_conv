@@ -293,9 +293,9 @@ class facebook(instantMessage):
             lines = [self.line(l, n) for n, l in enumerate(doc)]
             
         # if all of the patterns fail, use line breaks.
-        if len(lines) == 0:
-            doc = self.by_line_break(file)
-            lines = [self.line(l, n) for n, l in enumerate(doc)]
+        # if len(lines) == 0:
+        #     doc = self.by_line_break(file)
+        #     lines = [self.line(l, n) for n, l in enumerate(doc)]
             
         # if line breaks fail, log the empty conv
         if len(lines) == 0:
