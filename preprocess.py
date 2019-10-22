@@ -251,7 +251,7 @@ class facebook(instantMessage):
                                 raw_lines[-1]['raw_message'] = line
                                 try:
                                     raw_lines[-1]['user'] = _line[1]
-                                    raw_lines[-1]['text'] = '\n'.join(_line[1:-2])
+                                    raw_lines[-1]['text'] = ' '.join(_line[2:-2])
                                 except:
                                     pass
 
