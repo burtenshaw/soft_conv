@@ -231,38 +231,41 @@ class facebook(instantMessage):
         r = re.compile(self.pattern['conv'])
         with open(file, 'r', encoding="utf-8") as f:
             conv = ''.join([m.groupdict()['exchange'] for m in r.finditer(f.read())])
-# if variations persist add structure types
-#             self.file_structure = 'no_divide'
+        self.file_pattern = 'conv'
         return conv
     
-    def by_line(self, file):
-        r = re.compile(self.pattern['line_date'], flags=re.MULTILINE)
-        with open(file, 'r', encoding="utf-8") as f:
-            conv = f.read()
-            lines = r.split(conv)
-            
-        raw_lines = []
-        r = re.compile(self.pattern['line_date'])
-        for n, line in enumerate(lines):
-            if r.match(line) or n == 0:
-                raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
-            else:
-                try:
-                    if type(raw_lines[-1]) == dict:
-                        _line = line.split('\n')
-                        raw_lines[-1]['raw_message'] = line
+    def by_date(self, file):
+        for pat_n, r in enumerate(self.pattern['multi_date']):
+            raw_lines = []
+            with open(file, 'r', encoding="utf-8") as f:
+                conv = f.read()
+                lines = r.split(conv)
+            if len(lines) != 0:        
+                for n, line in enumerate(lines):
+                    if r.match(line) or n == 0:
+                        raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
+                    else:
                         try:
-                            raw_lines[-1]['user'] = _line[1]
-                            raw_lines[-1]['text'] = '\n'.join(_line[2:-2])
-                        except:
-                            pass
-                        
-                except IndexError:
-                    pass
+                            if type(raw_lines[-1]) == dict:
+                                _line = line.split('\n')
+                                raw_lines[-1]['raw_message'] = line
+                                try:
+                                    raw_lines[-1]['user'] = _line[1]
+                                    raw_lines[-1]['text'] = '\n'.join(_line[2:-2])
+                                except:
+                                    pass
 
+                        except IndexError:
+                            pass
+                self.file_pattern = 'multi_line' + str(pat_n)
+                break
+            else:
+                pass
+            
+            
         return raw_lines
 
-    def rough_split(self, file):
+    def by_line_break(self, file):
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
             lines = conv.split('\n')
@@ -273,24 +276,31 @@ class facebook(instantMessage):
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
             elif line is not '':
                 raw_lines.append({'line_n':n,'date':'', 'text':line, 'user': ''})
-
+        self.file_pattern = 'on_line_break'
         return raw_lines
 
     def conversation(self, file):
+        
+        # try to regex the entire file and break the file up into seperate coversation exchanges:
         conv = self.regex_file(file)
         r = re.compile(self.pattern['line'])
         doc = [m.groupdict() for m in r.finditer(conv)]
         lines = [self.line(l, n) for n, l in enumerate(doc)]
-
+        
+        # If that fails, use a scale of date detectors to split the file up on date
         if len(lines) == 0:
-            doc = self.by_line(file)
+            doc = self.by_date(file)
             lines = [self.line(l, n) for n, l in enumerate(doc)]
+            
+        # if all of the patterns fail, use line breaks.
         if len(lines) == 0:
-            doc = self.rough_split(file)
+            doc = self.by_line_break(file)
             lines = [self.line(l, n) for n, l in enumerate(doc)]
+            
+        # if line breaks fail, log the empty conv
         if len(lines) == 0:
             self.errors.append(file)
-
+            self.file_pattern = 'no_match'
         self.lines = lines    
         users, users_seq = self.users(lines)
         if self.remove_names:
@@ -303,6 +313,7 @@ class facebook(instantMessage):
                 "users":users, 
                 # "date_range":date_range,
                 "source": file,
+                "file_pattern":self.file_pattern
                 # "users_key": users_key
                 }
         
