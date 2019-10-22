@@ -240,7 +240,7 @@ class facebook(instantMessage):
             with open(file, 'r', encoding="utf-8") as f:
                 conv = f.read()
                 lines = r.split(conv)
-            if len(lines) != 0:        
+            if len(lines) != 1:        
                 for n, line in enumerate(lines):
                     if r.match(line) or n == 0:
                         raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
