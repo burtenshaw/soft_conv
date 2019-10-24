@@ -281,13 +281,13 @@ class facebook(instantMessage):
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
             lines = conv.split('\n')
-        r = re.compile(self.pattern['line_date'])
+        r = re.compile(self.pattern['pattern_set_2'][0])
         raw_lines = []
         for n, line in enumerate(lines):
             if r.match(line) or n == 0:
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
-            elif line is not '':
-                raw_lines.append({'line_n':n,'date':'', 'text':line, 'user': ''})
+            elif len(line) > 0 and line.isspace() == False:
+                raw_lines[-1].extend({'line_n':n,'date':'', 'text':line, 'user': ''})
         self.file_pattern = 'on_line_break'
         return raw_lines
 
