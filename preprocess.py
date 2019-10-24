@@ -33,6 +33,7 @@ class instantMessage:
         self.save_key = save_key
         self.pattern = pattern
         self.errors = []
+        self.patterns_distrbution = defaultdict(list)
     
     # utility functions
     def load(self):
@@ -147,6 +148,8 @@ class instantMessage:
         print("saving data")
         self.save()
         print("empty conversation errors", len(self.errors))
+        for k, i in self.patterns_distrbution.items():
+            print(k, ':  ', len(i))
         
     def save(self):
         with open(self.out_dir, 'w') as f:
@@ -272,8 +275,7 @@ class facebook(instantMessage):
 
                 except IndexError:
                     pass
-        self.file_pattern = 'pattern_set_2_' + str(pat_n)
-        break            
+        self.file_pattern = 'pattern_set_2_' + str(pat_n)        
             
         return raw_lines
 
@@ -319,6 +321,8 @@ class facebook(instantMessage):
             lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
 
+        self.pattern_distribution[self.file_pattern].append(self.conv_n)
+        
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
         return {"lines":lines, 
                 "user_seq":users_seq, 
