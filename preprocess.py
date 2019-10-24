@@ -237,8 +237,9 @@ class facebook(instantMessage):
         self.file_pattern = 'conv'
         return conv
 
-    def by_date(self, file, patterns=self.pattern['pattern_set_2'][:4]):
-
+    def by_date(self, file, patterns=None):
+        if patterns == None:
+            patterns = self.pattern['pattern_set_2'][:4]
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
 
