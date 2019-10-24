@@ -227,41 +227,53 @@ class facebook(instantMessage):
     '''
     
     def regex_file(self, file):
-        print("parsing file: ", file)
+        # print("parsing file: ", file)
         r = re.compile(self.pattern['conv'])
         with open(file, 'r', encoding="utf-8") as f:
             conv = ''.join([m.groupdict()['exchange'] for m in r.finditer(f.read())])
         self.file_pattern = 'conv'
         return conv
-    
-    def by_date(self, file):
-        for pat_n, r in enumerate(self.pattern['multi_date']):
-            raw_lines = []
-            with open(file, 'r', encoding="utf-8") as f:
-                conv = f.read()
-                lines = r.split(conv)
-            if len(lines) != 1:        
-                for n, line in enumerate(lines):
-                    if r.match(line) or n == 0:
-                        raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
-                    else:
-                        try:
-                            if type(raw_lines[-1]) == dict:
-                                _line = line.split('\n')
-                                raw_lines[-1]['raw_message'] = line
-                                try:
-                                    raw_lines[-1]['user'] = _line[1]
-                                    raw_lines[-1]['text'] = ' '.join(_line[2:-2])
-                                except:
-                                    pass
 
-                        except IndexError:
-                            pass
-                self.file_pattern = 'multi_line' + str(pat_n)
-                break
-            else:
-                pass
-            
+    def by_date(self, file, patterns=self.pattern['pattern_set_2'][:4]):
+
+        with open(file, 'r', encoding="utf-8") as f:
+            conv = f.read()
+
+        date_split_text = [conv]
+        raw_lines = []
+
+        for pat_n, r in enumerate(patterns):
+            for n,t in enumerate(date_split_text):
+                _split = dp.split(t)
+                if len(_split) >= 1:
+                    split = [c for c in _split if not c.isspace() and len(c) != 0]
+                    date_split_text[n:n+len(split)] = split
+                    break
+        
+        gold = patterns[0]
+
+        for n, line in enumerate(date_split_text):
+            if gold.match(line) or n == 0:
+                raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
+            elif len(line) > 0 and line.isspace() == False:
+                while line.startswith(('\n',' ','\t')):
+                    line = line[1:]
+                while t.endswith(('\n', ' ','\t')):
+                    line = line[:-1]
+                try:
+                    _line = line.split('\n')
+                    if len(line) > 0 and line.isspace() == False:
+                        raw_lines[-1]['raw_message'] = line
+                    try:
+                        raw_lines[-1]['user'] = _line[1]
+                        raw_lines[-1]['text'] = ' '.join(_line[2:])
+                    except:
+                        pass
+
+                except IndexError:
+                    pass
+        self.file_pattern = 'pattern_set_2_' + str(pat_n)
+        break            
             
         return raw_lines
 
