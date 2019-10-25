@@ -299,11 +299,13 @@ class facebook(instantMessage):
     def conversation(self, file):
         
         # try to regex the entire file and break the file up into seperate coversation exchanges:
-        conv = self.regex_file(file)
-        r = re.compile(self.pattern['line'])
-        doc = [m.groupdict() for m in r.finditer(conv)]
-        lines = [self.line(l, n) for n, l in enumerate(doc)]
+        # conv = self.regex_file(file)
+        # r = re.compile(self.pattern['line'])
+        # doc = [m.groupdict() for m in r.finditer(conv)]
+        # lines = [self.line(l, n) for n, l in enumerate(doc)]
         
+        lines = []
+
         # If that fails, use a scale of date detectors to split the file up on date
         if len(lines) == 0:
             doc = self.by_date(file)
