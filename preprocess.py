@@ -35,7 +35,7 @@ class instantMessage:
         self.pattern = pattern
         self.pattern_array = pattern_array
         self.errors = []
-        self.pattern_distrbution = defaultdict(list)
+        self.pattern_distribution = defaultdict(list)
     
     # utility functions
     def load(self):
