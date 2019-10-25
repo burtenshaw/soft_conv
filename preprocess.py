@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 from dateutil import parser
+from tqdm import tqdm
 
 # import pandas as pd
 from collections import defaultdict
@@ -25,6 +26,7 @@ class instantMessage:
                  pattern_array=[]):
         print('Data Directory: ', data_dir)
         self.dir = data_dir
+        self.data = data
         self.school = school
         self.paths = self.load()
         print('N .txt files: ', len(self.paths))
@@ -75,7 +77,11 @@ class instantMessage:
         return filename
     
     def fileIter(self):
-        return {self.conv_n: self.conversation(f) for self.conv_n, f in enumerate(self.paths)}
+        for self.conv_n, f in enumerate(tqdm(self.paths)):
+            self.data[self.conv_n] = self.conversation(f)
+            if self.conv_n % 100 == 0:
+                for k, i in self.pattern_distrbution.items():
+                    print(k, ':  ', len(i))
     
     def line(self, line, n_line):
         date, user, text = line['date'], line['user'], line['text']
@@ -150,6 +156,8 @@ class instantMessage:
         print("saving data")
         self.save()
         print("empty conversation errors", len(self.errors))
+
+        print("patterns used: ")
         for k, i in self.pattern_distrbution.items():
             print(k, ':  ', len(i))
         
@@ -228,7 +236,7 @@ class whatsApp(instantMessage):
 class facebook(instantMessage):
     ''' 
         Due to the periodic structuring of facebook conversations, it's useful to handle them in their own way.
-        This allows us to also get seperate coversations instances, defined by time.
+        This allows us to also get separate coversations instances, defined by time.
     '''
     
     def regex_file(self, file):
@@ -265,19 +273,18 @@ class facebook(instantMessage):
                     line = line[1:]
                 while t.endswith(('\n', ' ','\t')):
                     line = line[:-1]
-                
-                try:
-                    _line = line.split('\n')
-                    if len(line) > 0 and line.isspace() == False:
-                        raw_lines[-1]['raw_message'] = line
+                if len(line) > 0 and not line.isspace():
                     try:
-                        raw_lines[-1]['user'] = _line[1]
-                        raw_lines[-1]['text'] = ' '.join(_line[2:])
-                    except:
-                        pass
+                        raw_lines[-1]['raw_message'] = line
+                        _line = [x for x in line.split('\n') if x != '\n']
+                        try:
+                            raw_lines[-1]['user'] = _line[0]
+                            raw_lines[-1]['text'] = ' '.join(_line[1:])
+                        except:
+                            pass
 
-                except IndexError:
-                    pass
+                    except IndexError:
+                        pass
                 
         self.file_pattern = 'by_date_' + str(pat_n)        
             
