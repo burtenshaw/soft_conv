@@ -158,7 +158,7 @@ class instantMessage:
         print("empty conversation errors", len(self.errors))
 
         print("patterns used: ")
-        for k, i in self.pattern_distibution.items():
+        for k, i in self.pattern_distribution.items():
             print(k, ':  ', len(i))
         
     def save(self):

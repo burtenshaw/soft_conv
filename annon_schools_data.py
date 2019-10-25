@@ -37,14 +37,19 @@ if __name__== "__main__":
     argparser.add_argument("--debug", help="get more info and examples from data errors.", action="store_true")
     argparser.add_argument("--data", help="directory of instant messaging conversations")
     argparser.add_argument("--platform", help="type of instant messages: 'fb' / 'wa'")
+    argparser.add_argument("--out_dir",default= None,help="directory of instant messaging conversations")
     args = argparser.parse_args()
     
 
     if args.platform == 'wa':
-        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False,out_dir="whatsapp.json",)
+        if args.out_dir == None:
+            args.out_dir = "whatsapp.json"
+        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False,out_dir=args.out_dir,)
         w.run()
 
     elif args.platform == 'fb':
-        w = facebook(patterns,data_dir=args.data,remove_names=False, out_dir="facebook.json", pattern_array=patterns['pattern_set_2'])
+        if args.out_dir == None:
+            args.out_dir = "facebook.json"
+        w = facebook(patterns,data_dir=args.data,remove_names=False, out_dir=args.out_dir, pattern_array=patterns['pattern_set_2'])
         w.run()
     
