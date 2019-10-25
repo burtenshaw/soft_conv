@@ -44,7 +44,7 @@ if __name__== "__main__":
     if args.platform == 'wa':
         if args.out_dir == None:
             args.out_dir = "whatsapp.json"
-        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False,out_dir=args.out_dir,)
+        w = whatsApp(patterns['one'],data_dir=args.data,remove_names=False,out_dir=args.out_dir, in_one=True)
         w.run()
 
     elif args.platform == 'fb':

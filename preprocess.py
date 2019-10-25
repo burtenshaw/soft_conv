@@ -23,7 +23,8 @@ class instantMessage:
                  save_key=False, 
                  debug=True,
                  school=True,
-                 pattern_array=[]):
+                 pattern_array=[],
+                 in_one = False):
         print('Data Directory: ', data_dir)
         self.dir = data_dir
         self.data = {}
@@ -34,6 +35,9 @@ class instantMessage:
         print('Output Location: ', out_dir)
         self.remove_names = remove_names
         self.save_key = save_key
+
+        # process
+        self.in_one = in_one
         self.pattern = pattern
         self.pattern_array = pattern_array
         self.errors = []
@@ -78,6 +82,7 @@ class instantMessage:
     
     def fileIter(self):
         for self.conv_n, f in enumerate(tqdm(self.paths)):
+            self.file = f
             self.data[self.conv_n] = self.conversation(f)
             if self.conv_n % 150 == 0:
                 for k, i in self.pattern_distribution.items():
@@ -101,151 +106,15 @@ class instantMessage:
                 "user":user, 
                 "text":text, 
                 "raw_date":date,
-                "raw_message": raw_message}
-        
-    # single regex
-    def conversation(self, file):
-        """Approach using a single regex"""
-        print("parsing file: ", file)
+                "raw_message": raw_message,
+                "source":self.file
+                }
+
+    def regex_file(self, file):
         r = re.compile(self.pattern)
         with open(file, 'r', encoding="utf-8") as f:
             doc = [m.groupdict() for m in r.finditer(f.read())]
-        lines = [self.line(l, n) for n, l in enumerate(doc)]
-        users, users_seq = self.users(lines)
-        if self.remove_names:
-            lines, users_key = self.anon(lines, users)
-            users, users_seq = self.users(lines)
-        else:
-            users_key = users
-            users, users_seq = self.users(lines)
-        if len(lines) == 0:
-            self.errors.append(file)
-        # date_range = [lines[0]['utc'], lines[-1]['utc']]
-        return {"lines":lines, 
-                "user_seq":users_seq, 
-                "users":users, 
-                # "date_range":date_range,
-                "source": file,
-                "users_key": users}  
-    
-    def user_data(self):
-        return {user:{'lines': [[line['conv_n'], line['line_n'], line['utc']] 
-                       for line in self.lines_d]} 
-                       for user in self.users(self.lines_d)[0]}
-    
-    def line_data(self):
-        return [line for _, conv in self.data.items() for line in conv['lines']]
-    
-    def conversations_data(self):
-        return [[l['line_n'] for l in conv['lines']] for _, conv in self.data.items()]
-    
-    def separate_data(self):
-        self.lines_d = self.line_data()
-        self.conversations_d = self.conversations_data()
-        self.user_d = self.user_data()
-        for d in [['lines',self.lines_d], 
-                  ['conversations',self.conversations_d], 
-                  ['users',self.user_d]]:
-            self.out_dir = d[0] + ".json"
-            self.data = d[1]
-            self.save()
-            
-    def run(self):
-        print("iterating over files")
-        self.fileIter()
-        print("saving data")
-        self.save()
-        print("empty conversation errors", len(self.errors))
-
-        print("patterns used: ")
-        for k, i in self.pattern_distribution.items():
-            print(k, ':  ', len(i))
-        
-    def save(self):
-        with open(self.out_dir, 'w') as f:
-            json.dump(self.data,f)
-        with open('empty_convs.json', 'w') as f:
-            json.dump(self.errors,f)
-#         self.csv = True
-#         if self.csv:
-#             self.make_csv()
-
-class lineByline(instantMessage):
-
-    ''' 
-    Slower class that iterates over text files per line.
-    Requires seperate date, line, and conversation patterns
-    '''
-
-    def validate_date_pattern(self, line):
-        for p in self.patterns['date']:
-            try:
-                date, user, text = self.reg_line(line, p)
-                print("Regex pattern validated: ", 
-                      "\n date ",date,
-                      "\n user ", user,
-                      "\n text ", text)
-                utc = int(parser.parse(date).timestamp())
-                print("Date parse validated: ", utc)
-                self.pattern = p
-                break
-            except:
-                print("Broken pattern")
-                pass
-
-    def conversation(self, file):
-        print("parsing file: ", file)
-        doc = list(open(file, 'r', encoding="utf-8"))
-        self.validate_date_pattern(doc[0])
-        
-        lines = {}
-        for n, l in enumerate(doc):
-            try:
-                self.line(re.match(self.pattern, line).groupdict(), n)
-                lines[n] = _l
-                x = n
-            except:
-                lines[x]['text'] += _l
-                
-        lines = [l[1] for l in lines.items()]  
-        users, users_seq = self.users(lines)
-        
-        if self.remove_names:
-            lines, users_key = self.anon(lines, users)
-            users, users_seq = self.users(lines)
-        else:
-            users_key = users
-            users, users_seq = self.users(lines)
-
-        date_range = [lines[0]['utc'], lines[-1]['utc']]
-        return {"lines":lines, 
-                "user_seq":users_seq, 
-                "users":users, 
-                "date_range":date_range,
-                "source": file,
-                "users_key": users_key}    
-
-
-class whatsApp(instantMessage):
-    ''' 
-        whatsapp conversation should work using the standard instant message class 
-    '''
-    pass
-
-
-class facebook(instantMessage):
-    ''' 
-        Due to the periodic structuring of facebook conversations, it's useful to handle them in their own way.
-        This allows us to also get separate coversations instances, defined by time.
-    '''
-    
-    def regex_file(self, file):
-        # print("parsing file: ", file)
-        r = re.compile(self.pattern['conv'])
-        with open(file, 'r', encoding="utf-8") as f:
-            conv = ''.join([m.groupdict()['exchange'] for m in r.finditer(f.read())])
-        self.file_pattern = 'conv'
-        return conv
+        return doc
 
     def by_date(self, file, patterns=None):
         if patterns == None:
@@ -307,30 +176,28 @@ class facebook(instantMessage):
 
     def conversation(self, file):
         
-        # try to regex the entire file and break the file up into seperate coversation exchanges:
-        # conv = self.regex_file(file)
-        # r = re.compile(self.pattern['line'])
-        # doc = [m.groupdict() for m in r.finditer(conv)]
-        # lines = [self.line(l, n) for n, l in enumerate(doc)]
-        
-        lines = []
+        if self.in_one:
+            # try to regex the entire file and break the file up into separate coversation exchanges:
+            doc = self.regex_file(file)
+            self.file_pattern = 'in_one'
+        else:
+            doc =[]
 
         # If that fails, use a scale of date detectors to split the file up on date
-        if len(lines) == 0:
+        if len(doc) == 0 or self.in_one == False:
             doc = self.by_date(file)
-            lines = [self.line(l, n) for n, l in enumerate(doc)]
 
         # if all of the patterns fail, use line breaks.
-        if len(lines) == 0:
+        if len(doc) == 0:
             doc = self.by_line_break(file)
-            lines = [self.line(l, n) for n, l in enumerate(doc)]
             
         # if line breaks fail, log the empty conv
-        if len(lines) == 0:
+        if len(doc) == 0:
             self.errors.append(file)
             self.file_pattern = 'no_match'
 
-        self.lines = lines    
+        self.lines = lines = [self.line(l, n) for n, l in enumerate(doc)]
+
         users, users_seq = self.users(lines)
 
         if self.remove_names:
@@ -348,5 +215,72 @@ class facebook(instantMessage):
                 "file_pattern":self.file_pattern
                 # "users_key": users_key
                 }
+    
+    def user_data(self):
+        return {user:{'lines': [[line['conv_n'], line['line_n'], line['utc']] 
+                       for line in self.lines_d]} 
+                       for user in self.users(self.lines_d)[0]}
+    
+    def line_data(self):
+        return [line for _, conv in self.data.items() for line in conv['lines']]
+    
+    def conversations_data(self):
+        return [[l['line_n'] for l in conv['lines']] for _, conv in self.data.items()]
+    
+    def separate_data(self):
+        self.lines_d = self.line_data()
+        self.conversations_d = self.conversations_data()
+        self.user_d = self.user_data()
+        for d in [['lines',self.lines_d], 
+                  ['conversations',self.conversations_d], 
+                  ['users',self.user_d]]:
+            self.out_dir = d[0] + ".json"
+            self.data = d[1]
+            self.save()
+            
+    def run(self):
+        print("iterating over files")
+        self.fileIter()
+        print("saving data")
+        self.save()
+        print("empty conversation errors", len(self.errors))
+
+        print("patterns used: ")
+        for k, i in self.pattern_distribution.items():
+            print(k, ':  ', len(i))
         
+    def save(self):
+        with open(self.out_dir, 'w') as f:
+            json.dump(self.data,f)
+        with open('empty_convs.json', 'w') as f:
+            json.dump(self.errors,f)
+#         self.csv = True
+#         if self.csv:
+#             self.make_csv()
+
+
+class whatsApp(instantMessage):
+    ''' 
+        whatsapp conversation should work using the standard instant message class 
+    '''
+    pass
+
+
+class facebook(instantMessage):
+    ''' 
+        Due to the periodic structuring of facebook conversations, it's useful to handle them in their own way.
+        This allows us to also get separate coversations instances, defined by time.
+    '''
+    
+    def regex_file(self, file):
+        # print("parsing file: ", file)
+        r = re.compile(self.pattern['conv'])
+        with open(file, 'r', encoding="utf-8") as f:
+            conv = ''.join([m.groupdict()['exchange'] for m in r.finditer(f.read())])
+        self.file_pattern = 'conv'
+        return conv
+
+
+
+
 
