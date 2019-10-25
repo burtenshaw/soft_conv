@@ -45,6 +45,6 @@ if __name__== "__main__":
         w.run()
 
     elif args.platform == 'fb':
-        w = facebook(patterns,data_dir=args.data,remove_names=False, out_dir="facebook.json")
+        w = facebook(patterns,data_dir=args.data,remove_names=False, out_dir="facebook.json", pattern_array=patterns['pattern_set_2'])
         w.run()
     

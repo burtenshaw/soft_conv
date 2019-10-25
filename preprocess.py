@@ -21,7 +21,8 @@ class instantMessage:
                  remove_names=True, 
                  save_key=False, 
                  debug=True,
-                 school=True):
+                 school=True,
+                 pattern_array=[]):
         print('Data Directory: ', data_dir)
         self.dir = data_dir
         self.school = school
@@ -32,6 +33,7 @@ class instantMessage:
         self.remove_names = remove_names
         self.save_key = save_key
         self.pattern = pattern
+        self.pattern_array = pattern_array
         self.errors = []
         self.patterns_distrbution = defaultdict(list)
     
@@ -239,7 +241,7 @@ class facebook(instantMessage):
 
     def by_date(self, file, patterns=None):
         if patterns == None:
-            patterns = self.pattern['pattern_set_2'][:4]
+            patterns = self.pattern_array
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
 
@@ -276,7 +278,7 @@ class facebook(instantMessage):
 
                 except IndexError:
                     pass
-        self.file_pattern = 'pattern_set_2_' + str(pat_n)        
+        self.file_pattern = 'by_date_' + str(pat_n)        
             
         return raw_lines
 
@@ -284,7 +286,7 @@ class facebook(instantMessage):
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
             lines = conv.split('\n')
-        r = re.compile(self.pattern['pattern_set_2'][0])
+        r = re.compile(self.pattern_array[0])
         raw_lines = []
         for n, line in enumerate(lines):
             if r.match(line) or n == 0:
@@ -316,8 +318,10 @@ class facebook(instantMessage):
         if len(lines) == 0:
             self.errors.append(file)
             self.file_pattern = 'no_match'
+
         self.lines = lines    
         users, users_seq = self.users(lines)
+        
         if self.remove_names:
             lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
