@@ -26,7 +26,7 @@ class instantMessage:
                  pattern_array=[]):
         print('Data Directory: ', data_dir)
         self.dir = data_dir
-        self.data = data
+        self.data = {}
         self.school = school
         self.paths = self.load()
         print('N .txt files: ', len(self.paths))
