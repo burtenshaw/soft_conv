@@ -286,7 +286,7 @@ class facebook(instantMessage):
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
             lines = conv.split('\n')
-        r = re.compile(self.pattern_array[0])
+        r = self.pattern_array[0]
         raw_lines = []
         for n, line in enumerate(lines):
             if r.match(line) or n == 0:
@@ -321,7 +321,7 @@ class facebook(instantMessage):
 
         self.lines = lines    
         users, users_seq = self.users(lines)
-        
+
         if self.remove_names:
             lines, users_key = self.anon(lines, users)
             users, users_seq = self.users(lines)
