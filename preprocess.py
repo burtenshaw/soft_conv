@@ -79,8 +79,8 @@ class instantMessage:
     def fileIter(self):
         for self.conv_n, f in enumerate(tqdm(self.paths)):
             self.data[self.conv_n] = self.conversation(f)
-            if self.conv_n % 100 == 0:
-                for k, i in self.pattern_distrbution.items():
+            if self.conv_n % 150 == 0:
+                for k, i in self.pattern_distribution.items():
                     print(k, ':  ', len(i))
     
     def line(self, line, n_line):
@@ -158,7 +158,7 @@ class instantMessage:
         print("empty conversation errors", len(self.errors))
 
         print("patterns used: ")
-        for k, i in self.pattern_distrbution.items():
+        for k, i in self.pattern_distibution.items():
             print(k, ':  ', len(i))
         
     def save(self):
