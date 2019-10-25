@@ -35,7 +35,7 @@ class instantMessage:
         self.pattern = pattern
         self.pattern_array = pattern_array
         self.errors = []
-        self.patterns_distrbution = defaultdict(list)
+        self.pattern_distrbution = defaultdict(list)
     
     # utility functions
     def load(self):
@@ -150,7 +150,7 @@ class instantMessage:
         print("saving data")
         self.save()
         print("empty conversation errors", len(self.errors))
-        for k, i in self.patterns_distrbution.items():
+        for k, i in self.pattern_distrbution.items():
             print(k, ':  ', len(i))
         
     def save(self):
@@ -265,6 +265,7 @@ class facebook(instantMessage):
                     line = line[1:]
                 while t.endswith(('\n', ' ','\t')):
                     line = line[:-1]
+                
                 try:
                     _line = line.split('\n')
                     if len(line) > 0 and line.isspace() == False:
