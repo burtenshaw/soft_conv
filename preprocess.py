@@ -244,13 +244,13 @@ class facebook(instantMessage):
             patterns = self.pattern_array
         with open(file, 'r', encoding="utf-8") as f:
             conv = f.read()
-
+ 
         date_split_text = [conv]
         raw_lines = []
 
         for pat_n, r in enumerate(patterns):
             for n,t in enumerate(date_split_text):
-                _split = dp.split(t)
+                _split = r.split(t)
                 if len(_split) >= 1:
                     split = [c for c in _split if not c.isspace() and len(c) != 0]
                     date_split_text[n:n+len(split)] = split
