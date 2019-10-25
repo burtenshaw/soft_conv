@@ -152,7 +152,7 @@ class instantMessage:
             
     def run(self):
         print("iterating over files")
-        self.data = self.fileIter()
+        self.fileIter()
         print("saving data")
         self.save()
         print("empty conversation errors", len(self.errors))
@@ -269,10 +269,12 @@ class facebook(instantMessage):
             if patterns[0].match(line) or n == 0:
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
             elif len(line) > 0 and line.isspace() == False:
+                
                 while line.startswith(('\n',' ','\t')):
                     line = line[1:]
                 while line.endswith(('\n', ' ','\t')):
                     line = line[:-1]
+                
                 if len(line) > 0 and not line.isspace():
                     try:
                         raw_lines[-1]['raw_message'] = line
@@ -285,7 +287,6 @@ class facebook(instantMessage):
 
                     except IndexError:
                         pass
-                
         self.file_pattern = 'by_date_' + str(pat_n)        
             
         return raw_lines
@@ -318,7 +319,7 @@ class facebook(instantMessage):
         if len(lines) == 0:
             doc = self.by_date(file)
             lines = [self.line(l, n) for n, l in enumerate(doc)]
-            
+
         # if all of the patterns fail, use line breaks.
         if len(lines) == 0:
             doc = self.by_line_break(file)
@@ -337,7 +338,7 @@ class facebook(instantMessage):
             users, users_seq = self.users(lines)
 
         self.pattern_distribution[self.file_pattern].append(self.conv_n)
-        
+
         # date_range = [lines[0]['utc'], lines[-1]['utc']]
         return {"lines":lines, 
                 "user_seq":users_seq, 
