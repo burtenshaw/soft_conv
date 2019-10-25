@@ -246,7 +246,6 @@ class facebook(instantMessage):
             conv = f.read()
  
         date_split_text = [conv]
-        raw_lines = []
 
         for pat_n, r in enumerate(patterns):
             for n,t in enumerate(date_split_text):
@@ -256,10 +255,10 @@ class facebook(instantMessage):
                     date_split_text[n:n+len(split)] = split
                     break
         
-        gold = patterns[0]
+        raw_lines = []
 
         for n, line in enumerate(date_split_text):
-            if gold.match(line) or n == 0:
+            if patterns[0].match(line) or n == 0:
                 raw_lines.append({'line_n':n,'date':line, 'text':'', 'user': ''})
             elif len(line) > 0 and line.isspace() == False:
                 while line.startswith(('\n',' ','\t')):
@@ -278,6 +277,7 @@ class facebook(instantMessage):
 
                 except IndexError:
                     pass
+                
         self.file_pattern = 'by_date_' + str(pat_n)        
             
         return raw_lines
