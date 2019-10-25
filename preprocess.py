@@ -271,7 +271,7 @@ class facebook(instantMessage):
             elif len(line) > 0 and line.isspace() == False:
                 while line.startswith(('\n',' ','\t')):
                     line = line[1:]
-                while t.endswith(('\n', ' ','\t')):
+                while line.endswith(('\n', ' ','\t')):
                     line = line[:-1]
                 if len(line) > 0 and not line.isspace():
                     try:
