@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/burtenshaw/.pyenv/versions/anaconda3-4.3.0/bin/python"
+    "python.pythonPath": "/home/burtenshaw/.pyenv/versions/anaconda3-4.3.0/bin/python",
+    "python.dataScience.jupyterServerURI": "http://localhost:9002/?token=4a93562fa2fefd041453e7a84a89cee398740e06ecfecab"
 }

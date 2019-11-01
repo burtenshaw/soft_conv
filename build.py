@@ -48,3 +48,34 @@ m.manual_df.to_csv(output_dir+'wa_manual.csv')
 
 
 
+# facebook
+
+
+
+output_dir = '/home/burtenshaw/data/teen/beta/facebook/_2/'
+
+with open('/home/burtenshaw/data/teen/raw/facebook.json', 'r') as f:
+    facebook_json = json.load(f)
+# conversation_json = "/home/burtenshaw/data/teen/raw/whatsapp.json"
+with open('/home/burtenshaw/data/teen/alpha/redo/key.json') as f:
+    alpha_key = json.load(f)
+
+file_path = "/home/burtenshaw/data/teen/alpha/lisa_annon.txt"
+alpha = alphaData(file_path, alpha_key=alpha_key)
+alpha.run()
+
+latest_csv = '/home/burtenshaw/data/teen/beta/facebook/cleaning/facebook_lines_clean_2.csv'
+latest_csv = pd.read_csv(latest_csv)
+
+beta = fb_beta(conversation_json=facebook_json, line_csv=latest_csv, alpha_object=alpha)
+
+beta.line_df.to_csv(output_dir + 'fb_line_df.csv')
+beta.conv_df.to_csv(output_dir + 'fb_conv_df.csv')
+beta.user_df.to_csv(output_dir + 'fb_user_df.csv')
+
+beta.contact_df = beta.user_df
+m = matchDataSets(alpha, beta, params={'sample':10,'intersection':0.5})
+m.run()
+
+m.contact_df.to_csv(output_dir+'fb_matches.csv')
+m.manual_df.to_csv(output_dir+'fb_manual.csv')
