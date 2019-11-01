@@ -127,9 +127,6 @@ result['validity'] = [1 for x in result.index]
 
 # In[18]:
 
-unfound_users
-
-
 # In[14]:
 
 # rand_hundred.to_excel("/home/burtenshaw/data/teen/validation/rand_hundred.xlsx")
