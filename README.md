@@ -28,3 +28,13 @@ Data should be structured:
 **Facebook**
 ```python3 annon_schools_data.py --data #DATA_DIR# --platform fb```
 
+
+
+# Final Workflow
+
+- Parse txt files
+- Tidy data
+- Validate accuracy
+- Match users
+- Match lines
+- Annon txt

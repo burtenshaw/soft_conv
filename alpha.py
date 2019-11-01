@@ -116,61 +116,29 @@ class alphaData:
 #         df.drop(columns=['lines', 'user_seq', 'users_key'], inplace=True)
 #         return df
 
-
-class proposeUsers:
-    def __init__(self, contact_name, alpha_object):
-        '''
-            Given a conversation instance from instant messaging, attempt to match users with alpha data.
-        '''
-        self.contact = contact_name
-        self.alpha = alpha_object
-        self.validated_names = self.check_key()
-         
-    def possible_names(self):
-        all_names = [x[1] for x in list(self.alpha.key.items())]
-        return difflib.get_close_matches(self.contact, all_names, n=3, cutoff=0.75)
-    
-    def check_alpha(self, validated_chatter_IDs):
-        for alpha_name, chatter_ids in validated_chatter_IDs.items():
-            in_alpha = []
-            for c in chatter_ids:
-                try:
-                    self.alpha.user_df.loc[c]
-                    in_alpha.append(c)
-                except KeyError:
-                    pass
-            validated_chatter_IDs[alpha_name] = in_alpha
-        return validated_chatter_IDs
-
-    def check_key(self):
-        validated = {}
-        for p in self.possible_names():
-            validated[p] = self.alpha.search(p)
-        return self.check_alpha(validated)
-
 class matchDataSets:
-    def __init__(self, alpha, beta, proposal_df, params = {'sample':10,'intersection':7}, check_alpha = True):
+    def __init__(self, alpha, beta,     params = {'sample':10,'intersection':0.7}, check_alpha = True):
         alpha.line_df.index = alpha.line_df['chatter_ID']
         self.alpha = alpha
         self.beta = beta
-        self.proposal_df = proposal_df
         self.alpha_key = alpha.key
         self.manual_df = pd.DataFrame()
         self.contact_df = pd.DataFrame()
         self.log = []
         self.params = params
         self.check_alpha = check_alpha
-        
+        self.proposal_df = self.build_proposal_df()
+
     # utility functions
     
-    def clean_beta_examples(self, contact_idx):
-        beta_examples = [str(x).lower().split('\n')[0] for x in list(self.beta.line_df.loc[self.beta.contact_df.loc[contact_idx]['line_idxs']].text) if not x.startswith("<")]
-        beta_examples.sort(key=len, reverse=True)
+    def clean_beta_examples(self, contact_name):
+        beta_examples = list(self.beta.line_df.loc[self.beta.line_df.user.str.contains(contact_name)].text.dropna().str.lower())
+        beta_examples.sort(key=lambda x: len(str(x)), reverse=True)
         return beta_examples
                                                                                                                                    
     def clean_alpha_examples(self, chatter_id):
-        alpha_examples = [str(x).lower() for x in list(self.alpha.df.iloc[self.alpha.user_df.loc[chatter_id]['lines_n']].post)]
-        alpha_examples.sort(key=len, reverse=True)
+        alpha_examples = list(self.alpha.line_df.loc[self.alpha.line_df.chatter_ID.str.contains(chatter_id)].post.dropna().str.lower())
+        alpha_examples.sort(key=lambda x: len(str(x)), reverse=True)
         return alpha_examples
     
     def match_intersection(self, a, b):
@@ -182,7 +150,17 @@ class matchDataSets:
         self.contact_df.at[beta_contact_idx, 'match_intersection'] = _inter
         self.contact_df.at[beta_contact_idx, 'AS_ALPHA_chatter_id'] = self.beta.contact_df.AS_ALPHA_chatter_id[beta_contact_idx]
         self.contact_df.at[beta_contact_idx, 'proposed_chatter_ids'] = str(self.proposal_df.proposed_chatter_ids[beta_contact_idx])
-    
+    # proposal df
+
+    def build_proposal_df(self):
+        print('Making Proposals')
+        proposal = self.beta.contact_df
+        all_names = list(dict.fromkeys(self.alpha_key.values()))
+        alpha_chatter_ids = list(self.alpha.user_df.index)
+        proposal['possible_names'] = proposal.user.apply(lambda x: difflib.get_close_matches(x, all_names, n=3, cutoff=0.75))
+        proposal['proposed_chatter_ids'] = proposal.possible_names.apply(lambda pos: list(itertools.chain.from_iterable([self.alpha.search(p) for p in pos])))
+        return proposal
+
     # Matching scenarios
     
     def match_none(self, conv_idx, beta_contact_name, beta_contact_idx):
@@ -235,19 +213,13 @@ class matchDataSets:
         with tqdm(total=self.proposal_df.shape[0]) as pbar:
             for beta_contact_idx, row in self.proposal_df.iterrows():
                 self.log.append(beta_contact_idx)
-                beta_contact_name = row['contact_name']
+                beta_contact_name = row['user']
                 self.contact_df.at[beta_contact_idx, 'beta_contact_name'] = beta_contact_name
 
-                conv_idx = beta_contact_idx.split('_')[0]
+                conv_idx = self.beta.contact_df.loc[beta_contact_idx]['conv_idxs'][0]
                 proposed_chatter_ids = row['proposed_chatter_ids']
-            
-#                 # instance with no matches in key
-#                 if len(proposed_chatter_ids) == 0:
-#                     self.match_none(conv_idx, beta_contact_name, beta_contact_idx)
 
-                # instances with matches
                 if len(proposed_chatter_ids) > 0:
                     self.match_many(conv_idx, beta_contact_name, proposed_chatter_ids, beta_contact_idx)
                     
                 pbar.update(1)
-
