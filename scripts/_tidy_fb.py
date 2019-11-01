@@ -147,5 +147,3 @@ for p_df in list_of_df  :
 line_df = pd.DataFrame(_lines)
 line_df = pd.DataFrame(_lines)
 line_df.to_csv(clean_csv)
-
-#%%
