@@ -1,3 +1,11 @@
+import os
+try:
+	os.chdir(os.path.join(os.getcwd(), '/home/burtenshaw/code/2019/teen_conv'))
+	print(os.getcwd())
+except:
+	pass
+
+
 import pandas as pd
 import json
 import numpy as np
@@ -8,8 +16,6 @@ from beta import fb_beta
 from beta import betaData
 from alpha import alphaData
 from alpha import matchDataSets
-
-
 
 
 # whatsapp

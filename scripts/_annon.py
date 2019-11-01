@@ -8,7 +8,7 @@ from tqdm import tqdm
 import nl_core_news_sm
 nlp = nl_core_news_sm.load()
 import re
-
+from utils import *
 # resources
 
 output_dir = "/home/burtenshaw/data/teen/beta/facebook/annon/"
@@ -24,43 +24,7 @@ output_dir = "/home/burtenshaw/data/teen/beta/facebook/annon/"
 # with open('/home/burtenshaw/data/teen/annon_files/streets.json', 'r') as f:
 #     streets = json.load(f)
 
-# # functions
 
-# def get_u_idx(real_name):
-#     ''' beef up this function to handle all the users in the study'''
-#     try:
-#         return user_df.loc[user_df['user_name_lower'] == real_name].user_idx[0]
-#     except:
-#         return real_name
-
-# def fuzzy_names(names):
-#     _ = {}
-#     for n in names:
-#         try:
-#             int(n[-1])
-#         except ValueError :
-#             _n = n.split(' ')
-#             x = _n[0].lower()
-#             y = ' '.join(_n[1:]).lower()
-            
-#             if len(x) > 2:
-#                 _[x] = n
-#             if len(y) > 2:
-#                 _[y] = n
-#     return _
-
-# def check_text_for_user(text, c_u):
-#     doc = nlp(text)
-#     for token in doc:
-#         if token.pos_ == 'PROPN' and token.text == c_u:
-#             text = [t.text for t in doc]
-#             text[token.i] = get_u_idx(all_fuzzy_names[c_u])
-#             text = ' '.join(text)
-#     return text
-
-# def loc_idx(_x):
-#     """ give a descrete location reference for places found in text"""
-#     return 'loc_'+str((_x*_x))
 
 
 # all_fuzzy_names = fuzzy_names(all_users)
@@ -72,6 +36,8 @@ output_dir = "/home/burtenshaw/data/teen/beta/facebook/annon/"
 # vocab_gementes.extend([x for x in streets if x in nlp.vocab])
 
 # # # build prelim dataframes
+
+df = pd.read_csv('/home/burtenshaw/data/teen/beta/facebook/annon/ines_df_annon_locations.csv')
 
 # df = pd.read_csv(latest_csv, index_col=0)
 # df.dropna(inplace=True)
@@ -173,6 +139,5 @@ output_dir = "/home/burtenshaw/data/teen/beta/facebook/annon/"
 # df = pd.DataFrame(_annon_lines)
 # df.to_csv(output_dir+'ines_df_annon_locations.csv')
 p = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
-df = pd.read_csv('/home/burtenshaw/data/teen/beta/facebook/annon/ines_df_annon_locations.csv')
 df['text'] = df.text.apply(lambda txt: re.sub(p, "email@privaat.com", txt))
 df.to_csv(output_dir + "lines_annon_emails.csv")
