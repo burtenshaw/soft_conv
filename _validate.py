@@ -1,82 +1,34 @@
-
-# coding: utf-8
-
-# In[ ]:
-
-
-
-
-# In[2]:
-
-# Change directory to VSCode workspace root so that relative path loads work correctly. Turn this addition off with the DataScience.changeDirOnImportExport setting
-# ms-python.python added
-import os
-try:
-	os.chdir(os.path.join(os.getcwd(), '../../../teen_conv'))
-	print(os.getcwd())
-except:
-	pass
-
-
-get_ipython().magic('load_ext autoreload')
-get_ipython().magic('autoreload 2')
-
-
-# In[3]:
-
 import pandas as pd
 import json
 
-
-# In[4]:
-
-with open("/home/burtenshaw/data/teen/raw/facebook.json", 'r') as f:
-    data = json.load(f)
-
-
-# In[5]:
-
-# cleaning
-df = pd.read_csv('/home/burtenshaw/data/teen/beta/facebook_lines_clean_1.csv', index_col=0)
-df.dropna(inplace=True)
+df = pd.read_csv('/home/burtenshaw/data/teen/beta/combined/combined_line.csv', index_col=0)
 df.dropna(subset=['raw_message','text'], inplace=True)
-
-
-# In[ ]:
-
-
-
-
-# In[6]:
 
 for col in df.columns:
     df[col+'_len'] = [len(str(x)) for x in df[col]]
-
-
-# In[7]:
 
 # 100 random examples
 rand_hundred = df.sample(n = 100)
 
 # 50 shortest user
-long_user = pd.DataFrame(df.sort_values(['user_len'], ascending=False)[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+long_user = pd.DataFrame(df.sort_values(['user_len'], ascending=False)[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 # 50 shortest user
-shortest_user = pd.DataFrame(df.sort_values(['user_len'])[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+shortest_user = pd.DataFrame(df.sort_values(['user_len'])[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 
 # 50 longest text
-long_text = pd.DataFrame(df.sort_values(['text_len'], ascending=False)[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+long_text = pd.DataFrame(df.sort_values(['text_len'], ascending=False)[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 # 50 shortest text
-shortes_text = pd.DataFrame(df.sort_values(['text_len'])[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+shortes_text = pd.DataFrame(df.sort_values(['text_len'])[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 
 # 50 longest date
-long_date = pd.DataFrame(df.sort_values(['raw_date_len'], ascending=False)[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+long_date = pd.DataFrame(df.sort_values(['raw_date_len'], ascending=False)[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 # 50 shortest date
-shortest_date = pd.DataFrame(df.sort_values(['raw_date_len'])[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+shortest_date = pd.DataFrame(df.sort_values(['raw_date_len'])[:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 
 # unfound users
-unfound_users = pd.DataFrame(df.loc[df['user'] == 'unfound'][:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+unfound_users = pd.DataFrame(df.loc[df['user'] == 'unfound'][:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 # unfound dates
-unfound_dates = pd.DataFrame(df.loc[df['raw_date'] == 'unfound'][:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user']])
+unfound_dates = pd.DataFrame(df.loc[df['raw_date'] == 'unfound'][:50][['conv_n','file_pattern','found_in','line_n','raw_date','raw_message','text','user','source']])
 
 
 # In[8]:
@@ -92,7 +44,6 @@ frames = [
     unfound_users,
     unfound_dates,]
 
-
 # In[9]:
 
 names = [
@@ -107,12 +58,6 @@ names = [
     'unfound_dates',]
 
 result = pd.concat(frames, keys=names)
-
-
-# In[11]:
-
-result['source'] = [data[str(result.loc[idx]['conv_n'])]['source'] for idx in result.index]
-
 
 # In[13]:
 
@@ -143,7 +88,7 @@ result['validity'] = [1 for x in result.index]
 # no_users.to_excel("/home/burtenshaw/data/teen/validation/no_users.xlsx")
 # no_date.to_excel("/home/burtenshaw/data/teen/validation/no_date.xlsx")
 
-result.to_excel("/home/burtenshaw/data/teen/validation/COMBINED.xlsx")
+result.to_csv("/home/burtenshaw/data/teen/validation/COMBINED.csv")
 
 
 # In[ ]:

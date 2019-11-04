@@ -14,7 +14,7 @@ from teen_conv.alpha import matchDataSets
 input_dir = '/home/burtenshaw/data/teen/'
 fb_latest = 'beta/facebook/cleaning/facebook_lines_clean_2.csv'
 wa_latest = 'beta/whatsapp/whatsapp_clean_lines_1.csv'
-version = '_4'
+version = '_5'
 
 with open(input_dir + 'raw/facebook.json', 'r') as f:
     facebook_json = json.load(f)
@@ -31,40 +31,46 @@ file_path = input_dir + "alpha/lisa_annon.txt"
 alpha = alphaData(file_path, alpha_key=alpha_key)
 alpha.run()
 
-# whatsapp
+# BUILDING
 
-output_dir = input_dir + 'beta/whatsapp/%s/' % version
+## whatsapp
+
+wa_output_dir = input_dir + 'beta/whatsapp/%s/' % version
  
-latest_csv = pd.read_csv(input_dir + wa_latest)
+wa_latest_csv = pd.read_csv(input_dir + wa_latest)
 
-beta = fb_beta(conversation_json=whatsapp_json, line_csv=latest_csv, alpha_object=alpha, data_prefix='wa')
+wa_beta = fb_beta(conversation_json=whatsapp_json, line_csv=wa_latest_csv, alpha_object=alpha, data_prefix='wa')
 
-beta.line_df.to_csv(output_dir + 'wa_line_df.csv')
-beta.conv_df.to_csv(output_dir + 'wa_conv_df.csv')
-beta.user_df.to_csv(output_dir + 'wa_user_df.csv')
+wa_beta.line_df.to_csv(wa_output_dir + 'wa_line_df.csv')
+wa_beta.conv_df.to_csv(wa_output_dir + 'wa_conv_df.csv')
+wa_beta.user_df.to_csv(wa_output_dir + 'wa_user_df.csv')
 
-m = matchDataSets(alpha, beta, params={'sample':10,'intersection':0.5})
+## facebook
+
+fb_output_dir = input_dir + 'beta/facebook/%s/' % version
+
+fb_latest_csv = pd.read_csv(input_dir + fb_latest)
+
+fb_beta = fb_beta(conversation_json=facebook_json, line_csv=fb_latest_csv, alpha_object=alpha, data_prefix='fb')
+
+fb_beta.line_df.to_csv(fb_output_dir + 'fb_line_df.csv')
+fb_beta.conv_df.to_csv(fb_output_dir + 'fb_conv_df.csv')
+fb_beta.user_df.to_csv(fb_output_dir + 'fb_user_df.csv')
+
+# MATCHING
+
+## WA
+
+m = matchDataSets(alpha, wa_beta, params={'sample':10,'intersection':0.5})
 m.run()
 
-m.contact_df.to_csv(output_dir+'wa_matches.csv')
-m.manual_df.to_csv(output_dir+'wa_manual.csv')
+m.contact_df.to_csv(wa_output_dir+'wa_matches.csv')
+m.manual_df.to_csv(wa_output_dir+'wa_manual.csv')
 
-# facebook
+## FB
 
-output_dir = input_dir + 'beta/facebook/%s/' % version
-
-latest_csv = pd.read_csv(input_dir + fb_latest)
-
-beta = fb_beta(conversation_json=facebook_json, line_csv=latest_csv, alpha_object=alpha, data_prefix='fb')
-
-beta.line_df.to_csv(output_dir + 'fb_line_df.csv')
-beta.conv_df.to_csv(output_dir + 'fb_conv_df.csv')
-beta.user_df.to_csv(output_dir + 'fb_user_df.csv')
-
-
-
-m = matchDataSets(alpha, beta, params={'sample':10,'intersection':0.5})
+m = matchDataSets(alpha, fb_beta, params={'sample':10,'intersection':0.5})
 m.run()
 
-m.contact_df.to_csv(output_dir+'fb_matches.csv')
-m.manual_df.to_csv(output_dir+'fb_manual.csv')
+m.contact_df.to_csv(fb_output_dir+'fb_matches.csv')
+m.manual_df.to_csv(fb_output_dir+'fb_manual.csv')

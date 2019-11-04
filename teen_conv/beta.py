@@ -37,17 +37,19 @@ class betaData:
         self.line_df.dropna(inplace=True)
         # self.line_df.dropna(subset=['raw_message','text'], inplace=True)
         self.line_df['line_idx'] = self.line_df.index
-        self.line_df.index = self.line_df['line_idx'] = self.line_df.line_idx.apply(lambda n: '%s_l_%s' % (self.prefix, n))
+        self.line_df['line_idx'] = self.line_df.line_idx.apply(lambda n: '%s_l_%s' % (self.prefix, n))
         self.line_df['source'] = self.line_df.conv_n.apply(lambda conv_n: self.conv_data[str(conv_n)]['source'])
         self.line_df['conv_idx'] = self.line_df.conv_n.apply(lambda conv_n: '%s_c_%s' % (self.prefix, conv_n))
         self.line_df['school'] = self.line_df.source.apply(lambda source: source.split('/')[1])
         self.line_df['submitter'] = self.line_df.source.apply(lambda source: source.split('/')[2].split('_')[-1][:-4])
         self.line_df['clean_submitter'] = self.line_df.submitter.apply(lambda x: re.sub('\d','',x))
+        
+        self.line_df.index = self.line_df['line_idx']
 
     def make_conv_df(self):
         convs = self.line_df.groupby(['conv_idx'])
         self.conv_df = convs.first()
-        self.conv_df['line_idxs'] = convs.line_idx.apply(list)
+        self.conv_df['line_idxs'] = convs.line_idx.apply(lambda x:list(x))
         self.conv_df['users'] = convs.user.apply(lambda x:list(dict.fromkeys(list(x))))
         self.conv_df['user_idxs'] = [[] for x in self.conv_df.index]
 
@@ -55,12 +57,13 @@ class betaData:
         users = self.line_df.groupby(['user'], as_index=False)
         self.user_df = users.first()
         self.user_df['user_name'] = self.user_df.user
-        self.user_df['line_idxs'] = users.line_idx.apply(list)
+        self.user_df['line_idxs'] = users.line_idx.apply(lambda x:list(x))
         self.user_df['conv_idxs'] = users.conv_idx.apply(lambda x:list(dict.fromkeys(list(x))))
 
         self.user_df['user_idx'] = self.user_df.index
-        self.user_df.index = self.user_df['user_idx'] = self.user_df.user_idx.apply(lambda idx: '%s_u_%s' % (self.prefix, idx))
-        
+        self.user_df['user_idx'] = self.user_df.user_idx.apply(lambda idx: '%s_u_%s' % (self.prefix, idx))
+        self.user_df.index = self.user_df['user_idx']
+
         self.user_df['AS_ALPHA_chatter_id'] = self.user_df.user_name.apply(lambda x: self.a.search(x))
 
     def run(self):
@@ -87,3 +90,4 @@ class wa_beta(betaData):
         
 class fb_beta(betaData):
     pass
+
