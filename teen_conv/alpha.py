@@ -148,13 +148,13 @@ class matchDataSets:
         self.contact_df = self.contact_df.astype('object')
         self.contact_df.at[beta_contact_idx, 'matched_chatter_id'] = chatter_id
         self.contact_df.at[beta_contact_idx, 'match_intersection'] = _inter
-        self.contact_df.at[beta_contact_idx, 'AS_ALPHA_chatter_id'] = self.beta.contact_df.AS_ALPHA_chatter_id[beta_contact_idx]
+        self.contact_df.at[beta_contact_idx, 'AS_ALPHA_chatter_id'] = self.beta.user_df.AS_ALPHA_chatter_id[beta_contact_idx]
         self.contact_df.at[beta_contact_idx, 'proposed_chatter_ids'] = str(self.proposal_df.proposed_chatter_ids[beta_contact_idx])
     # proposal df
 
     def build_proposal_df(self):
         print('Making Proposals')
-        proposal = self.beta.contact_df
+        proposal = self.beta.user_df
         all_names = list(dict.fromkeys(self.alpha_key.values()))
         alpha_chatter_ids = list(self.alpha.user_df.index)
         proposal['possible_names'] = proposal.user.apply(lambda x: difflib.get_close_matches(x, all_names, n=3, cutoff=0.75))
@@ -204,7 +204,7 @@ class matchDataSets:
                 self.manual_df.at[beta_contact_idx, 'conv_id'] = conv_idx
                 self.manual_df.at[beta_contact_idx, 'source'] = self.beta.conv_df.loc[conv_idx]['source']
                 self.manual_df.at[beta_contact_idx, 'contact name'] = beta_contact_name
-                self.manual_df.at[beta_contact_idx, 'submitter'] = self.beta.contact_df.loc[beta_contact_idx]['submitter']
+                self.manual_df.at[beta_contact_idx, 'submitter'] = self.beta.user_df.loc[beta_contact_idx]['submitter']
                 self.manual_df.at[beta_contact_idx, 'proposed_chatter_id_%s' % n] = str(chatter_id)
                 self.manual_df.at[beta_contact_idx, 'proposed_alpha_name_%s' % n] = self.alpha_key[chatter_id]
                 self.manual_df.at[beta_contact_idx, 'proposed_chatter_id_%s_match_intersection' % n] = match[1]
@@ -216,7 +216,7 @@ class matchDataSets:
                 beta_contact_name = row['user']
                 self.contact_df.at[beta_contact_idx, 'beta_contact_name'] = beta_contact_name
 
-                conv_idx = self.beta.contact_df.loc[beta_contact_idx]['conv_idxs'][0]
+                conv_idx = self.beta.user_df.loc[beta_contact_idx]['conv_idxs'][0]
                 proposed_chatter_ids = row['proposed_chatter_ids']
 
                 if len(proposed_chatter_ids) > 0:

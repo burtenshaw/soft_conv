@@ -138,6 +138,7 @@ df = pd.read_csv('/home/burtenshaw/data/teen/beta/facebook/annon/ines_df_annon_l
 # print("Saving lines without locations: ")
 # df = pd.DataFrame(_annon_lines)
 # df.to_csv(output_dir+'ines_df_annon_locations.csv')
+
 p = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 df['text'] = df.text.apply(lambda txt: re.sub(p, "email@privaat.com", txt))
 df.to_csv(output_dir + "lines_annon_emails.csv")

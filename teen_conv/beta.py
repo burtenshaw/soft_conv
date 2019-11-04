@@ -5,10 +5,10 @@ from tqdm import tqdm
 import numpy as np
 import re
 
-from alpha import alphaData
+from teen_conv.alpha import alphaData
 
 class betaData:
-    def __init__(self, conversation_json=None, alpha_key=None, line_csv=None, alpha_object=None):
+    def __init__(self, conversation_json=None, alpha_key=None, line_csv=None, alpha_object=None, data_prefix='unk'):
 
         if type(conversation_json) == str:
             with open(conversation_json, 'r') as f:
@@ -26,6 +26,8 @@ class betaData:
         elif alpha_key:
             self.a = alphaData(alpha_key=alpha_key)
 
+        self.prefix = data_prefix 
+
         self.run()
     # utility functions
 
@@ -35,14 +37,12 @@ class betaData:
         self.line_df.dropna(inplace=True)
         # self.line_df.dropna(subset=['raw_message','text'], inplace=True)
         self.line_df['line_idx'] = self.line_df.index
-        self.line_df['line_idx'] = self.line_df.line_idx.apply(lambda n: 'l_' + str(n))
+        self.line_df.index = self.line_df['line_idx'] = self.line_df.line_idx.apply(lambda n: '%s_l_%s' % (self.prefix, n))
         self.line_df['source'] = self.line_df.conv_n.apply(lambda conv_n: self.conv_data[str(conv_n)]['source'])
-        self.line_df['conv_idx'] = self.line_df.conv_n.apply(lambda conv_n: 'c_'+str(conv_n))
+        self.line_df['conv_idx'] = self.line_df.conv_n.apply(lambda conv_n: '%s_c_%s' % (self.prefix, conv_n))
         self.line_df['school'] = self.line_df.source.apply(lambda source: source.split('/')[1])
         self.line_df['submitter'] = self.line_df.source.apply(lambda source: source.split('/')[2].split('_')[-1][:-4])
-        self.line_df['clean_submitter'] = self.line_df.source.apply(lambda x: re.sub('\d','',x))
-        
-        self.line_df.index = self.line_df['line_idx']
+        self.line_df['clean_submitter'] = self.line_df.submitter.apply(lambda x: re.sub('\d','',x))
 
     def make_conv_df(self):
         convs = self.line_df.groupby(['conv_idx'])
@@ -59,18 +59,9 @@ class betaData:
         self.user_df['conv_idxs'] = users.conv_idx.apply(lambda x:list(dict.fromkeys(list(x))))
 
         self.user_df['user_idx'] = self.user_df.index
-        self.user_df.index = self.user_df['user_idx'] = self.user_df.user_idx.apply(lambda idx: 'u_' + str(idx))
+        self.user_df.index = self.user_df['user_idx'] = self.user_df.user_idx.apply(lambda idx: '%s_u_%s' % (self.prefix, idx))
         
         self.user_df['AS_ALPHA_chatter_id'] = self.user_df.user_name.apply(lambda x: self.a.search(x))
-
-        # # add user fields to other frames
-        # for idx in self.user_df.index:
-        #     row = self.user_df.loc[idx]
-        #     u_idx = row.user_idx
-        #     for line_idx in row.line_idxs:
-        #         self.line_df.at[line_idx, 'user_idx'] = u_idx
-        #     for c_idx in row.conv_idxs:
-        #         self.conv_df.loc[c_idx]['user_idxs'].append(u_idx)
 
     def run(self):
         print("Building Line Frame")
@@ -83,7 +74,7 @@ class betaData:
     
 class wa_beta(betaData):
 
-    def deal_with_contacts():
+    def deal_with_contacts(self):
         """ Whatsapp uses contact names rathe than true users, this means that there can overlaps and errors depending on how entered that contact """
         """ To deal with that, we handle users as 'submitter_username' for whatsapp """
         self.line_df['user'] = self.line_df[['clean_submitter','contact_name']].apply(lambda x: '_'.join(x), axis=1)
