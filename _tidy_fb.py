@@ -102,5 +102,14 @@ for p_df in list_of_df  :
                     _lines.append(wrap_line(t, users, dp, conv_n))
                                     
 line_df = pd.DataFrame(_lines)
-line_df = pd.DataFrame(_lines)
+
+
+# debug_df.to_csv('/home/burtenshaw/data/teen/beta/facebook_lines_clean_1.csv')
+# df = pd.read_csv('/home/burtenshaw/data/teen/beta/facebook/cleaning/facebook_lines_clean_2.csv', index_col=0)
+
+
+pattern = re.compile('(?P<day>\s[0-9]|\s[0-9]{2})\s(?P<month>januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)((?P<year>\s(?:(?:[1]{1}\d{1}\d{1}\d{1})|(?:[2]{1}\d{3}))(?![\d]))|$)')
+
+line_df['text'] = line_df.text.apply(lambda x: re.sub(pattern, '', x))
+
 line_df.to_csv(clean_csv)
