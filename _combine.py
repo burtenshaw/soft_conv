@@ -3,8 +3,8 @@ import pandas as pd
 
 #%%#
 output_dir = "/home/burtenshaw/data/teen/beta/combined/"
-wa_dir = "/home/burtenshaw/data/teen/beta/whatsapp/_5/"
-fb_dir = "/home/burtenshaw/data/teen/beta/facebook/_5/"
+wa_dir = "/home/burtenshaw/data/teen/beta/whatsapp/_6/"
+fb_dir = "/home/burtenshaw/data/teen/beta/facebook/_6/"
 
 w_user= wa_dir + "wa_user_df.csv"
 w_line= wa_dir + "wa_line_df.csv"

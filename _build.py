@@ -12,9 +12,9 @@ from teen_conv.alpha import matchDataSets
 # Paths
 
 input_dir = '/home/burtenshaw/data/teen/'
-fb_latest = 'beta/facebook/cleaning/facebook_lines_clean_2.csv'
+fb_latest = 'beta/facebook/cleaning/facebook_lines_clean_3.csv'
 wa_latest = 'beta/whatsapp/whatsapp_clean_lines_1.csv'
-version = '_5'
+version = '_6'
 
 with open(input_dir + 'raw/facebook.json', 'r') as f:
     facebook_json = json.load(f)
