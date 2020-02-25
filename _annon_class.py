@@ -1,32 +1,31 @@
-#%%#
-import os
-try:
-	os.chdir(os.path.join(os.getcwd(), '/home/burtenshaw/code/2019/teen_conv'))
-	print(os.getcwd())
-except:
-	pass
-
-# coding: utf-8
 import json
 import pandas as pd
 from teen_conv.annon import Annon
 
 # Data paths 
 
+ALL_USERS_PATH = '/home/burtenshaw/data/teen/beta/usable_user_list.json'
+GEMENTES_PATH = '/home/burtenshaw/data/teen/annon_files/gementes_improved.json'
+STREETS_PATH = '/home/burtenshaw/data/teen/annon_files/streets.json'
+
 output_dir = "/home/burtenshaw/data/teen/beta/combined/annon/"
-line = pd.read_csv("/home/burtenshaw/data/teen/beta/combined/combined_line.csv", index_col=0)
-conv = pd.read_csv("/home/burtenshaw/data/teen/beta/combined/combined_conv.csv", index_col=0)
-user = pd.read_csv("/home/burtenshaw/data/teen/beta/combined/combined_user.csv", index_col=0)
+DATA_DIR = '/home/burtenshaw/data/teen/beta/whatsapp/_6/'
+KEY_PATH = '/home/burtenshaw/data/teen/beta/combined/combined_matches.csv'
+OUTPUT_DIR = '/home/burtenshaw/data/teen/beta/combined/'
+
+user = pd.read_csv(DATA_DIR + 'combined_user.csv', index_col=0)
+line = pd.read_csv(DATA_DIR + 'combined_line.csv', index_col=0)
+conv = pd.read_csv(DATA_DIR + 'combined_conv.csv', index_col=0)
 
 # resources
 
-with open('/home/burtenshaw/data/teen/beta/usable_user_list.json', 'r') as f:
+with open(ALL_USERS_PATH, 'r') as f:
     all_users = json.load(f)
 
-with open('/home/burtenshaw/data/teen/annon_files/gementes_improved.json', 'r') as f:
+with open(GEMENTES_PATH, 'r') as f:
     gementes = json.load(f) 
 
-with open('/home/burtenshaw/data/teen/annon_files/streets.json', 'r') as f:
+with open(STREETS_PATH, 'r') as f:
     streets = json.load(f)
 
 locations = gementes + streets 

@@ -1,15 +1,20 @@
 import pandas as pd
 from ast import literal_eval
 
-user = pd.read_csv('/home/burtenshaw/data/teen/beta/combined/combined_user.csv', index_col=0)
-line = pd.read_csv('/home/burtenshaw/data/teen/beta/combined/combined_line.csv', index_col=0)
-conv = pd.read_csv('/home/burtenshaw/data/teen/beta/combined/combined_conv.csv', index_col=0)
+DATA_DIR = '/home/burtenshaw/data/teen/beta/whatsapp/_6/'
+ALPHA_DIR = '/home/burtenshaw/data/teen/alpha/redo/'
+KEY_PATH = '/home/burtenshaw/data/teen/beta/combined/combined_matches.csv'
+OUTPUT_DIR = '/home/burtenshaw/data/teen/beta/combined/'
 
-a_user = pd.read_csv('/home/burtenshaw/data/teen/alpha/redo/alpha_users.csv', index_col=0)
-a_line = pd.read_csv('/home/burtenshaw/data/teen/alpha/redo/alpha_lines.csv', index_col=0)
+user = pd.read_csv(DATA_DIR + 'combined_user.csv', index_col=0)
+line = pd.read_csv(DATA_DIR + 'combined_line.csv', index_col=0)
+conv = pd.read_csv(DATA_DIR + 'combined_conv.csv', index_col=0)
+
+a_user = pd.read_csv(ALPHA_DIR + 'alpha_users.csv', index_col=0)
+a_line = pd.read_csv(ALPHA_DIR + 'alpha_lines.csv', index_col=0)
 
 # Encorporate validated matches
-key = pd.read_csv('/home/burtenshaw/data/teen/beta/combined/combined_matches.csv', index_col=0)
+key = pd.read_csv(KEY_PATH, index_col=0)
 
 print('conv')               
 # %%
@@ -47,21 +52,11 @@ print('combining')
 all_on_line = pd.concat([_u,_c,_s], axis=1)
 all_on_line = pd.merge(left= all_on_line, right=line, left_index=True, right_index=True)
 
-
-# %%
-all_on_line.head()
-
-
-# %%
-all_on_line.columns
-
-
-# %%
 all_on_line.drop(columns=['line_idxs','line_n'], inplace=True)
 
 print('saving')
 # %%
-all_on_line.to_csv('/home/burtenshaw/data/teen/beta/combined/combined_all_on_line.csv')
+all_on_line.to_csv(OUTPUT_DIR + 'combined_all_on_line.csv')
 # %%
 
 
