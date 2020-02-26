@@ -25,19 +25,19 @@ if __name__== "__main__":
     argparser.add_argument("--streets", 
                             help="up to date list of all actual streets within Flanders")
     
-    argparser.add_argument("local_users",
-                            default=True,
+    argparser.add_argument("NOT_local_users",
+                            action='store_true',
                             help = 'remove names from message text, of the users within a conversation')
-    argparser.add_argument("exterior_users",
-                            default=True,
+    argparser.add_argument("NOT_exterior_users", 
+                            action='store_true',
                             help = 'aggresively remove any name from message text')
-    argparser.add_argument("locations",
-                            default=True,
+    argparser.add_argument("NOT_locations",
+                            action='store_true',
                             help = 'remove names from messages of the users within a conversation')
-    argparser.add_argument("contact_info",
-                            default=True,
+    argparser.add_argument("NOT_contact_info",
+                            action='store_true',
                             help = 'remove names from messages of the users within a conversation')           
-    
+
     args = argparser.parse_args()
     
     # Data paths 
@@ -62,28 +62,28 @@ if __name__== "__main__":
 
     # run : 
 
-    if args.local_users:
+    if not args.NOT_local_users:
         print("Searching for local users in text: ")
         df = annon.remove_local_users()
         path = args.out_dir+'lines_df_annon_user_local.csv'
         print("Saving :" + path)
         df.to_csv(path)
 
-    if args.exterior_users:
+    if not args.NOT_exterior_users:
         print("Searching for any users in text: ")
         df = annon.remove_exterior_users()
         path = args.out_dir + 'lines_df_annon_user_ext.csv'
         print("Saving :" + path)
         df.to_csv(path)
 
-    if args.locations:
+    if not args.NOT_locations:
         print("Searching for places in text: ")
         df = annon.remove_locations()
         path = args.out_dir+'lines_df_annon_locations.csv'
         print("Saving :" + path)
         df.to_csv(path)
 
-    if args.contact_info:
+    if not args.NOT_contact_info:
         print("Searching for emails in text: ")
         df = annon.remove_emails()
         path = args.out_dir + "lines_annon_emails.csv"
