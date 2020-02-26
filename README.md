@@ -1,8 +1,10 @@
-# teen_conv
+# Teen_conv
 
 ### Preprocessing 
 
 To build an anonymous json file run:
+
+```python preprocessing```
 
 Define the source of messages with `--data` and the type of platform with `--platfiorm`.
 
@@ -11,11 +13,11 @@ Data should be structured:
 ```
 --- #DATA_DIR#/
     --- school_name/
-        --- instant_messagin_text_file.txt
-        --- instant_messagin_text_file.txt
-        --- instant_messagin_text_file.txt
-        --- instant_messagin_text_file.txt
-        --- instant_messagin_text_file.txt
+        --- instant_messaging_text_file.txt
+        --- instant_messaging_text_file.txt
+        --- instant_messaging_text_file.txt
+        --- instant_messaging_text_file.txt
+        --- instant_messaging_text_file.txt
     --- school_name/
     --- school_name/
     --- school_name/
@@ -32,9 +34,7 @@ Data should be structured:
 
 # Final Workflow
 
-- Parse txt files
-- Tidy data
-- Validate accuracy
-- Match users
-- Match lines
-- Annon txt
+- `preprocess.py`
+- `build.py`
+- `annon.py`
+- `validate.py`
