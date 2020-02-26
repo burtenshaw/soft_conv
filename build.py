@@ -74,7 +74,7 @@ if __name__== "__main__":
         if args.append:
             wa_latest_csv = pd.read_csv(args.append)
         else:
-`   `       wa_latest_csv = None
+            wa_latest_csv = None
     
         wa_beta = fb_beta(conversation_json=whatsapp_json, 
                             line_csv=wa_latest_csv, 
@@ -103,7 +103,7 @@ if __name__== "__main__":
         if args.append and wa_latest_csv == None:
             fb_latest_csv = pd.read_csv(args.append)
         else:
-`   `       fb_latest_csv = None
+            fb_latest_csv = None
 
         fb_beta = fb_beta(conversation_json=facebook_json, 
                             line_csv=fb_latest_csv, 
