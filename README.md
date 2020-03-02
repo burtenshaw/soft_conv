@@ -1,4 +1,10 @@
-# Teen_conv
+# Soft Conv
+
+This is a package for parsing instant messaging conversation under anonymity. With a focus on sensitive and ethically protected datasets. The package allows for flexible and object orientated implementations of parsing, based on popular messaging platforms. As well as custom anonymity fields for in text and out of text fields; for example, the mention of users within a message can be anonymised. 
+
+## Usage
+
+This package is intended to be used by collaborating researchers parsing instant messaging conversation, and offer specific tools for situations where not all researchers are granted (the same) access to raw data. For example, object orientation, debugging functions, generation of manual annotation test files.  
 
 ## Workflow
 
